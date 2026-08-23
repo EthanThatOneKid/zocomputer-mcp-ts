@@ -44,10 +44,37 @@ ZO_API_KEY=... npm run sync:mcp   # live fetch; falls back to the checked-in sna
 
 ```sh
 npm install
-npm test        # offline unit tests via node:test + tsx
-npm run build   # tsc → dist/
-npm run check   # sync:mcp + build
+npm run sync:mcp
+npm test
+npm run build
 ```
+
+## Nightly release
+
+`.github/workflows/nightly-release.yml` runs nightly and on manual dispatch. It:
+
+1. Syncs the MCP tool inventory (see below)
+2. Detects whether `openapi/mcp-tools.json` or package inputs changed
+3. Regenerates the client, runs the tests, and builds
+4. Bumps the patch version when needed
+5. Commits and pushes the updated snapshot
+6. Publishes the new version to npm
+
+Live tool refresh requires a `ZO_API_KEY` repository secret; without one the sync falls back to the checked-in snapshot and the nightly only publishes code changes.
+
+## npm trusted publishing
+
+This repository is set up for npm trusted publishing with GitHub Actions OIDC, not a long-lived `NPM_TOKEN`.
+
+Before nightly publish can work:
+
+1. Publish `zocomputer-mcp-ts` once manually from your npm account so the package exists on npm.
+2. In npm package settings, add a trusted publisher for:
+   - Owner: `EthanThatOneKid`
+   - Repository: `zocomputer-mcp-ts`
+   - Workflow filename: `nightly-release.yml`
+   - Allowed action: `npm publish`
+3. After OIDC publish is working, remove any old publish token and lock the package to trusted publishing in npm settings.
 
 ## License
 
