@@ -1,5 +1,8 @@
 # zocomputer-mcp-ts
 
+[![CI](https://github.com/EthanThatOneKid/zocomputer-mcp-ts/actions/workflows/ci.yml/badge.svg)](https://github.com/EthanThatOneKid/zocomputer-mcp-ts/actions/workflows/ci.yml)
+[![API docs](https://img.shields.io/badge/API_docs-github%20pages-3D7FFC)](https://ethanthatonekid.github.io/zocomputer-mcp-ts/)
+
 Unofficial TypeScript client for programmatic usage of [Zo Computer](https://zo.computer)'s tools over [Model Context Protocol](https://modelcontextprotocol.io) (streamable HTTP transport).
 
 While the main [`zocomputer`](https://github.com/EthanThatOneKid/zocomputer-ts) package covers Zo Computer's public OpenAPI surface (`/zo/ask`, model catalog, personas), this package speaks JSON-RPC 2.0 to `https://api.zo.computer/mcp` so you can drive Zo's tools (bash, file I/O, image/video generation, messaging, services, space routes, etc.) from TypeScript with full type safety.
@@ -32,6 +35,31 @@ const tools = await zo.listTools();
 
 const result = await zo.bash({ cmd: 'echo hello' });
 console.log(result.text);
+```
+
+### Error handling
+
+Tool-level failures arrive as results, not exceptions — check `isError` before trusting the output:
+
+```ts
+const result = await zo.bash({ cmd: 'deploy.sh' });
+
+if (result.isError) {
+  console.error('tool failed:', result.text);
+  process.exitCode = 1;
+} else {
+  console.log(result.text);
+}
+```
+
+Transport- and protocol-level problems (bad credentials, unreachable server, malformed responses) throw from `connect()` — wrap it accordingly:
+
+```ts
+try {
+  await zo.connect();
+} catch (err) {
+  console.error('could not reach api.zo.computer/mcp:', err);
+}
 ```
 
 ### Browser / OAuth callers
