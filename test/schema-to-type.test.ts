@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { compileArgsInterface, argsInterfaceName } from '../scripts/lib.js';
+import { compileArgsInterface, argsInterfaceName } from '@scripts/lib.js';
 
 // Each compile() call runs a Prettier pass, so assertions here are semantic
 // (substring/regex based). Exact byte-level output is locked by the golden

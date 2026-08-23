@@ -8,7 +8,7 @@ import { readFile } from 'node:fs/promises';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ModuleKind, ModuleResolutionKind, Project, ScriptTarget } from 'ts-morph';
-import { docsUrlFor, emitToolsModule, hasDocsPage, type ToolDefinition } from '../scripts/emitter.js';
+import { docsUrlFor, emitToolsModule, hasDocsPage, type ToolDefinition } from '@scripts/emitter.js';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const GOLDEN_PATH = join(HERE, 'golden', 'tools.gen.txt');
@@ -112,7 +112,7 @@ describe('docsUrlFor', () => {
 describe('emitToolsModule', () => {
   it('matches the committed golden file byte-for-byte', async () => {
     const out = await emitToolsModule(FIXTURE_TOOLS, HEADER);
-    const golden = await readFile(GOLDEN_PATH, 'utf8');
+    const golden = (await readFile(GOLDEN_PATH, 'utf8')).replace(/\r\n/g, '\n');
     assert.equal(out, golden);
   });
 
@@ -131,6 +131,7 @@ describe('emitToolsModule', () => {
         target: ScriptTarget.ES2022,
         module: ModuleKind.NodeNext,
         moduleResolution: ModuleResolutionKind.NodeNext,
+        paths: { '@/*': ['./src/*'], '@scripts/*': ['./scripts/*'] },
       },
     });
     project.createSourceFile('src/client.ts', await readFile(join(HERE, '..', 'src', 'client.ts'), 'utf8'), {

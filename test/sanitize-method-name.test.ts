@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { sanitizeMethodName } from '../scripts/lib.js';
+import { sanitizeMethodName } from '@scripts/lib.js';
 
 describe('sanitizeMethodName', () => {
   it('converts snake_case to camelCase', () => {

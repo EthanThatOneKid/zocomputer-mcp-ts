@@ -12,7 +12,7 @@ import {
 } from '@modelcontextprotocol/sdk/types.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import type { OAuthClientProvider } from '@modelcontextprotocol/sdk/client/auth.js';
-import { McpClientBase, resolveTransportOptions } from '../src/client.js';
+import { McpClientBase, resolveTransportOptions } from '@/client.js';
 
 const STUB_TOOLS = [
   {
