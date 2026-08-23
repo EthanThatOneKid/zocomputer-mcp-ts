@@ -10,7 +10,7 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { McpClientBase, DEFAULT_BASE_URL } from '../src/client.js';
+import { McpClientBase, DEFAULT_BASE_URL } from '@/client.js';
 import { emitToolsModule, type ToolDefinition } from './emitter.js';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
