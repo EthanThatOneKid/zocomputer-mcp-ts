@@ -23,7 +23,8 @@
     "test": "tsx --test test/*.test.ts",
     "sync:mcp": "tsx ./scripts/generate.ts",
     "check": "npm run sync:mcp && npm run build",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "docs": "typedoc"
   },
   "repository": {
     "type": "git",
@@ -54,6 +55,7 @@
     "json-schema-to-typescript": "^15.0.4",
     "ts-morph": "^26.0.0",
     "tsx": "^4.19.0",
+    "typedoc": "^0.28.20",
     "typescript": "6.0.3"
   },
   "dependencies": {
