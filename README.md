@@ -24,7 +24,7 @@ console.log(zo.serverInfo);
 
 const tools = await zo.listTools();
 
-const result = await zo.bash({ command: 'echo hello' });
+const result = await zo.bash({ cmd: 'echo hello' });
 console.log(result.text);
 ```
 
