@@ -8,9 +8,15 @@ While the main [`zocomputer`](https://github.com/EthanThatOneKid/zocomputer-ts) 
 
 ## Install
 
+The package is not on npm yet ([#8](https://github.com/EthanThatOneKid/zocomputer-mcp-ts/issues/8)); install straight from GitHub:
+
 ```sh
-npm install zocomputer-mcp-ts
+npm install zocomputer-mcp-ts@github:EthanThatOneKid/zocomputer-mcp-ts
 ```
+
+- The `zocomputer-mcp-ts@` alias keeps `import ... from 'zocomputer-mcp-ts'` working in your code.
+- Requires Git on your PATH. The first install clones this repo and compiles TypeScript via the `prepare` hook, so expect it to run slower than a registry install.
+- Pin a revision by appending `#<branch-or-commit>`, e.g. `...zocomputer-mcp-ts#main`.
 
 ## Usage
 
