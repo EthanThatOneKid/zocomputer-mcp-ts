@@ -27,6 +27,33 @@ function hasOutputSchema(tool: ToolDefinition): boolean {
   return typeof tool.outputSchema === 'object' && tool.outputSchema !== null;
 }
 
+/**
+ * Official per-tool documentation page on docs.zocomputer.com.
+ *
+ * Note: not every exposed tool has a page. See UNDOCUMENTED_TOOLS.
+ */
+export function docsUrlFor(toolName: string): string {
+  return `https://docs.zocomputer.com/tools/${toolName.replaceAll('_', '-')}.md`;
+}
+
+/**
+ * Tools whose docs page probed 404 on docs.zocomputer.com (checked
+ * 2026-08-23 against all 93 snapshot tools). No Docs link is emitted for
+ * these; prune entries here if upstream publishes the missing pages.
+ */
+const UNDOCUMENTED_TOOLS = new Set([
+  'create_agent',
+  'delete_agent',
+  'edit_agent',
+  'list_agents',
+  'tool_docs',
+]);
+
+/** Whether the official docs site hosts a page for this tool. */
+export function hasDocsPage(toolName: string): boolean {
+  return !UNDOCUMENTED_TOOLS.has(toolName);
+}
+
 /** Deterministic tool ordering shared by naming, compilation, and emission. */
 function sortedTools(tools: ToolDefinition[]): ToolDefinition[] {
   return [...tools].sort((a, b) => a.name.localeCompare(b.name));
@@ -138,6 +165,12 @@ export async function emitToolsModule(tools: ToolDefinition[], headerComment: st
 
   for (const tool of sortedTools(tools)) {
     const { methodName, interfaceName, resultInterfaceName } = names.get(tool.name)!;
+    const docLines: string[] = [];
+    if (tool.description) docLines.push(tool.description);
+    if (hasDocsPage(tool.name)) docLines.push(`Docs: ${docsUrlFor(tool.name)}`);
+    // One entry = one JSDoc block; separate entries render as detached comments.
+    const docBlock = docLines.length > 0 ? docLines.join('\n') : undefined;
+
     klass.addMethod({
       name: methodName,
       parameters: [{ name: 'args', type: interfaceName }],
@@ -147,7 +180,7 @@ export async function emitToolsModule(tools: ToolDefinition[], headerComment: st
       statements: resultInterfaceName
         ? `return this.callTool<${resultInterfaceName}>(${JSON.stringify(tool.name)}, args);`
         : `return this.callTool(${JSON.stringify(tool.name)}, args);`,
-      ...(tool.description ? { docs: [tool.description] } : {}),
+      ...(docBlock !== undefined ? { docs: [docBlock] } : {}),
     });
   }
 
