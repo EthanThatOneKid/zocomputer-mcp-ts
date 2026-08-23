@@ -74,6 +74,23 @@ const zo = new ZoComputerClient({ authProvider: myProvider });
 
 Get an API key from Zo Computer's Settings → Advanced (`ZO_API_KEY` or `ZO_CLIENT_IDENTITY_TOKEN`).
 
+### About result types
+
+Argument types come from each tool's declared `inputSchema`. Result typing depends on the tool declaring an `outputSchema` — tools that do return `Promise<McpToolResult<ToolResult>>` with a typed `structured` field, generated automatically by `npm run sync:mcp`.
+
+Today, Zo's tools declare **no output schemas**, so results arrive as text blocks:
+
+```ts
+const result = await zo.webSearch({ query: 'mcp specification' });
+
+if (!result.isError) {
+  // Schemaless payloads live in result.text — parse when you know the shape:
+  const rows = JSON.parse(result.text) as { title: string; url: string }[];
+}
+```
+
+When upstream starts declaring output schemas, re-running the sync is all it takes; method signatures update on regeneration with no code changes. Note that `structured` is typed per the schema captured at generation time — if server behavior drifts from that schema, validate before trusting it.
+
 ## Tool inventory
 
 The tool inventory is snapshotted into `openapi/mcp-tools.json` and compiled by

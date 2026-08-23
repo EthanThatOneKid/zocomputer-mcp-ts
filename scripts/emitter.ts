@@ -10,12 +10,21 @@ export interface ToolDefinition {
   name: string;
   description?: string;
   inputSchema: Record<string, unknown>;
+  /** When declared, compiled into a `<Name>Result` interface and the method's return type. */
+  outputSchema?: Record<string, unknown>;
 }
 
 /** Deterministically unique names handed out in tool-sorted order. */
 interface Names {
   methodName: string;
   interfaceName: string;
+  /** Present only when the tool declares an outputSchema. */
+  resultInterfaceName?: string;
+}
+
+/** JSON Schema booleans are not valid MCP output schemas — treat them as absent. */
+function hasOutputSchema(tool: ToolDefinition): boolean {
+  return typeof tool.outputSchema === 'object' && tool.outputSchema !== null;
 }
 
 /** Deterministic tool ordering shared by naming, compilation, and emission. */
@@ -38,10 +47,20 @@ function assignNames(tools: ToolDefinition[]): Map<string, Names> {
     byInterface.set(baseInterface, interfaceCount + 1);
 
     const suffix = (count: number) => (count === 0 ? '' : `_${count + 1}`);
-    assigned.set(tool.name, {
+    const names: Names = {
       methodName: baseMethod + suffix(methodCount),
       interfaceName: baseInterface + suffix(interfaceCount),
-    });
+    };
+
+    if (hasOutputSchema(tool)) {
+      // Result names live in their own namespace (…Args vs …Result never collide).
+      const baseResult = names.interfaceName.replace(/Args$/, 'Result');
+      const resultCount = byInterface.get(baseResult) ?? 0;
+      byInterface.set(baseResult, resultCount + 1);
+      names.resultInterfaceName = baseResult + suffix(resultCount);
+    }
+
+    assigned.set(tool.name, names);
   }
   return assigned;
 }
@@ -53,14 +72,20 @@ function assignNames(tools: ToolDefinition[]): Map<string, Names> {
 export async function emitToolsModule(tools: ToolDefinition[], headerComment: string): Promise<string> {
   const names = assignNames(tools);
 
-  // Compile every inputSchema first; failures abort generation loudly.
+  // Compile every schema first; failures abort generation loudly.
   const interfaceSources = new Map<string, string>();
   for (const tool of sortedTools(tools)) {
-    const { interfaceName } = names.get(tool.name)!;
+    const { interfaceName, resultInterfaceName } = names.get(tool.name)!;
     interfaceSources.set(
       interfaceName,
       await compileArgsInterface(tool.inputSchema ?? {}, interfaceName),
     );
+    if (hasOutputSchema(tool)) {
+      interfaceSources.set(
+        resultInterfaceName!,
+        await compileArgsInterface(tool.outputSchema, resultInterfaceName!),
+      );
+    }
   }
 
   const project = new Project({ useInMemoryFileSystem: true });
@@ -112,12 +137,16 @@ export async function emitToolsModule(tools: ToolDefinition[], headerComment: st
   });
 
   for (const tool of sortedTools(tools)) {
-    const { methodName, interfaceName } = names.get(tool.name)!;
+    const { methodName, interfaceName, resultInterfaceName } = names.get(tool.name)!;
     klass.addMethod({
       name: methodName,
       parameters: [{ name: 'args', type: interfaceName }],
-      returnType: 'Promise<McpToolResult>',
-      statements: `return this.callTool(${JSON.stringify(tool.name)}, args);`,
+      returnType: resultInterfaceName
+        ? `Promise<McpToolResult<${resultInterfaceName}>>`
+        : 'Promise<McpToolResult>',
+      statements: resultInterfaceName
+        ? `return this.callTool<${resultInterfaceName}>(${JSON.stringify(tool.name)}, args);`
+        : `return this.callTool(${JSON.stringify(tool.name)}, args);`,
       ...(tool.description ? { docs: [tool.description] } : {}),
     });
   }

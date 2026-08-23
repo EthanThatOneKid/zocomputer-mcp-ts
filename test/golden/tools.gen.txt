@@ -11,6 +11,24 @@ export interface GenerateVideoArgs {
     tags?: string[];
 }
 
+export interface SumTwoNumbersArgs {
+    x: number;
+    y: number;
+}
+
+export interface SumTwoNumbersResult {
+    total: number;
+}
+
+export interface SumTwoNumbers2Args {
+    a: number;
+    b: number;
+}
+
+export interface SumTwoNumbers2Result {
+    sum: number;
+}
+
 export interface WebSearchArgs {
     q: string;
 }
@@ -20,7 +38,7 @@ export interface WebSearch2Args {
     time_range?: string;
 }
 
-export const TOOL_NAMES = ["connect_telegram", "generate_video", "web__search", "web_search"] as const;
+export const TOOL_NAMES = ["connect_telegram", "generate_video", "sum__two_numbers", "sum_two_numbers", "web__search", "web_search"] as const;
 
 /**
  * Typed convenience methods for every tool Zo Computer exposes over MCP.
@@ -35,6 +53,16 @@ export class ZoComputerClient extends McpClientBase {
     /** Generates video. */
     generateVideo(args: GenerateVideoArgs): Promise<McpToolResult> {
         return this.callTool("generate_video", args);
+    }
+
+    /** Adds two integers (duplicate name collision). */
+    sumTwoNumbers(args: SumTwoNumbersArgs): Promise<McpToolResult<SumTwoNumbersResult>> {
+        return this.callTool<SumTwoNumbersResult>("sum__two_numbers", args);
+    }
+
+    /** Adds two integers. */
+    sumTwoNumbers_2(args: SumTwoNumbers2Args): Promise<McpToolResult<SumTwoNumbers2Result>> {
+        return this.callTool<SumTwoNumbers2Result>("sum_two_numbers", args);
     }
 
     webSearch(args: WebSearchArgs): Promise<McpToolResult> {

@@ -39,17 +39,26 @@ export interface McpClientConfig {
 /** A single content block inside a tool result (`{ type: 'text', text }` et al). */
 export type McpContentBlock = { type: string } & Record<string, unknown>;
 
-export interface McpToolResult<T = unknown> {
+export interface McpToolResult<TStructured = unknown> {
   /** true when the tool executed but signaled failure. */
   isError: boolean;
   /** Concatenated text of all text blocks. */
   text: string;
   /** All returned content blocks. */
   content: McpContentBlock[];
-  /** Structured output when the server provides it (JSON-schema'd tool output). */
-  structured?: Record<string, unknown>;
+  /**
+   * Structured output (`structuredContent`) when the server provides it.
+   * Typed automatically for tools that declare an `outputSchema`; `unknown`
+   * otherwise (schemaless tools deliver their payload via `text`).
+   *
+   * Trust boundary: the type reflects the schema captured at generation time.
+   * If the server's live behavior drifts from that schema, `structured` may
+   * not match its type at runtime — validate before relying on it for
+   * security-sensitive decisions.
+   */
+  structured?: TStructured;
   /** The raw CallToolResult for advanced access. */
-  raw: T;
+  raw: unknown;
 }
 
 export class McpClientBase {
@@ -121,7 +130,10 @@ export class McpClientBase {
   }
 
   /** Low-level tool call; generated methods wrap this for type safety. */
-  async callTool<T = unknown>(name: string, args: object = {}): Promise<McpToolResult<T>> {
+  async callTool<TStructured = unknown>(
+    name: string,
+    args: object = {},
+  ): Promise<McpToolResult<TStructured>> {
     const result = await this.requireClient().callTool({ name, arguments: args as Record<string, unknown> });
     const content = (Array.isArray(result.content) ? result.content : []) as McpContentBlock[];
     const text = content
@@ -132,8 +144,8 @@ export class McpClientBase {
       isError: result.isError === true,
       content,
       text,
-      structured: result.structuredContent as Record<string, unknown> | undefined,
-      raw: result as T,
+      structured: result.structuredContent as TStructured | undefined,
+      raw: result,
     };
   }
 
