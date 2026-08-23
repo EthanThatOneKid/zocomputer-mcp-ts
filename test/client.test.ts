@@ -3,6 +3,7 @@
 
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
+import { createServer } from 'node:http';
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import {
   CallToolRequestSchema,
@@ -10,7 +11,8 @@ import {
   PingRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
-import { McpClientBase } from '../src/client.js';
+import type { OAuthClientProvider } from '@modelcontextprotocol/sdk/client/auth.js';
+import { McpClientBase, resolveTransportOptions } from '../src/client.js';
 
 const STUB_TOOLS = [
   {
@@ -122,5 +124,112 @@ describe('McpClientBase tool calls', () => {
       assert.equal(result.isError, true);
       assert.equal(result.text, 'boom');
     });
+  });
+});
+
+// -- OAuth provider passthrough (#3) ------------------------------
+
+function makeStubOAuthProvider(accessToken = 'stub-token'): OAuthClientProvider {
+  return {
+    get redirectUrl(): string {
+      return 'http://localhost/callback';
+    },
+    get clientMetadata() {
+      return {
+        client_name: 'stub',
+        redirect_uris: ['http://localhost/callback'],
+        grant_types: ['authorization_code', 'refresh_token'],
+        response_types: ['code'],
+        token_endpoint_auth_method: 'none',
+      };
+    },
+    clientInformation() {
+      return { client_id: 'stub-client-id' };
+    },
+    tokens() {
+      return { access_token: accessToken, token_type: 'Bearer' } as never;
+    },
+  };
+}
+
+describe('resolveTransportOptions', () => {
+  it('adds a bearer header when auth is set', () => {
+    const options = resolveTransportOptions({ auth: 'zo_sk_test' });
+    assert.deepEqual(options.requestInit?.headers, { authorization: 'Bearer zo_sk_test' });
+  });
+
+  it('passes authProvider through untouched', () => {
+    const provider = makeStubOAuthProvider();
+    const options = resolveTransportOptions({ authProvider: provider });
+    assert.equal(options.authProvider, provider);
+    assert.deepEqual(options.requestInit?.headers, {});
+  });
+
+  it('merges caller requestInit.headers with the bearer header', () => {
+    const options = resolveTransportOptions({
+      auth: 'zo_sk_test',
+      requestInit: { headers: { 'x-custom': 'yes' } },
+    });
+    assert.deepEqual(options.requestInit?.headers, { 'x-custom': 'yes', authorization: 'Bearer zo_sk_test' });
+  });
+
+  it('throws when both credential styles are provided', () => {
+    assert.throws(
+      () => resolveTransportOptions({ auth: 'a', authProvider: makeStubOAuthProvider() }),
+      /either auth or authProvider/,
+    );
+  });
+});
+
+describe('McpClientBase OAuth wiring', () => {
+  it('rejects conflicting credentials at construction', () => {
+    assert.throws(() => new McpClientBase({ auth: 'a', authProvider: makeStubOAuthProvider() }), /either auth or authProvider/);
+  });
+
+  it('sends the provider access token over a real streamable HTTP handshake', async () => {
+    const seen: (string | undefined)[] = [];
+    const server = createServer((req, res) => {
+      seen.push(req.headers.authorization);
+      let body = '';
+      req.on('data', (chunk) => (body += chunk));
+      req.on('end', () => {
+        res.writeHead(200, { 'content-type': 'application/json' });
+        if (body.includes('"method":"initialize"')) {
+          const requestId = (JSON.parse(body) as { id: number }).id;
+          res.end(
+            JSON.stringify({
+              jsonrpc: '2.0',
+              id: requestId,
+              result: {
+                protocolVersion: '2025-06-18',
+                capabilities: {},
+                serverInfo: { name: 'oauth-stub', version: '1.0.0' },
+              },
+            }),
+          );
+        } else {
+          res.end('{}');
+        }
+      });
+    });
+
+    await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
+    const address = server.address() as { port: number };
+
+    try {
+      const client = new McpClientBase({
+        baseUrl: `http://127.0.0.1:${address.port}/mcp`,
+        authProvider: makeStubOAuthProvider(),
+      });
+      await client.connect();
+      assert.equal(client.serverInfo?.name, 'oauth-stub');
+      await client.close();
+      assert.ok(seen.length > 0, 'no requests reached the stub server');
+      for (const header of seen) {
+        assert.match(header ?? '', /^Bearer stub-token$/);
+      }
+    } finally {
+      server.close();
+    }
   });
 });

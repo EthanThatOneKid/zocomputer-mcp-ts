@@ -12,6 +12,7 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import type { StreamableHTTPClientTransportOptions } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
+import type { OAuthClientProvider } from '@modelcontextprotocol/sdk/client/auth.js';
 import type { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
 
 export const DEFAULT_BASE_URL = 'https://api.zo.computer/mcp';
@@ -19,6 +20,12 @@ export const DEFAULT_BASE_URL = 'https://api.zo.computer/mcp';
 export interface McpClientConfig {
   /** Bearer token from Settings → Advanced (ZO_API_KEY or ZO_CLIENT_IDENTITY_TOKEN). */
   auth?: string;
+  /**
+   * OAuth 2.1 provider (e.g. PKCE in the browser) supplying tokens for the
+   * streamable HTTP transport. Mutually exclusive with `auth` — providing both
+   * throws at construction.
+   */
+  authProvider?: OAuthClientProvider;
   /** Default https://api.zo.computer/mcp */
   baseUrl?: string;
   /** Identifies this client to the server during initialization. */
@@ -47,20 +54,19 @@ export interface McpToolResult<T = unknown> {
 
 export class McpClientBase {
   private readonly baseUrl: string;
-  private readonly auth?: string;
+  private readonly streamableOptions: StreamableHTTPClientTransportOptions;
   private readonly clientInfo: { name: string; version: string };
-  private readonly requestInit?: RequestInit;
   private readonly injectedTransport?: Transport;
   private _client?: Client;
 
   constructor(config: McpClientConfig = {}) {
     this.baseUrl = (config.baseUrl ?? DEFAULT_BASE_URL).replace(/\/+$/, '');
-    this.auth = config.auth;
+    // Resolving here also validates credential exclusivity before any I/O.
+    this.streamableOptions = resolveTransportOptions(config);
     this.clientInfo = {
       name: config.clientInfo?.name ?? 'zocomputer-mcp-ts',
       version: config.clientInfo?.version ?? '0.1.0',
     };
-    this.requestInit = config.requestInit;
     this.injectedTransport = config.transport;
   }
 
@@ -92,7 +98,7 @@ export class McpClientBase {
     const client = new Client(this.clientInfo, { capabilities: {} });
     const transport =
       this.injectedTransport ??
-      new StreamableHTTPClientTransport(new URL(this.baseUrl), this.transportOptions());
+      new StreamableHTTPClientTransport(new URL(this.baseUrl), this.streamableOptions);
     await client.connect(transport);
     this._client = client;
   }
@@ -141,12 +147,24 @@ export class McpClientBase {
     if (!this._client) throw new Error('not connected — call connect() first');
     return this._client;
   }
+}
 
-  private transportOptions(): StreamableHTTPClientTransportOptions {
-    const headers: Record<string, string> = {
-      ...((this.requestInit?.headers as Record<string, string> | undefined) ?? {}),
-      ...(this.auth ? { authorization: `Bearer ${this.auth}` } : {}),
-    };
-    return { requestInit: { ...this.requestInit, headers } };
+/**
+ * Builds streamable HTTP transport options from credential config. Exported
+ * for tests; the entry point does not re-export it.
+ *
+ * Throws when both `auth` and `authProvider` are set — silent precedence
+ * between credential styles would hide misconfiguration.
+ */
+export function resolveTransportOptions(
+  config: Pick<McpClientConfig, 'auth' | 'authProvider' | 'requestInit'>,
+): StreamableHTTPClientTransportOptions {
+  if (config.auth && config.authProvider) {
+    throw new Error('Provide either auth or authProvider, not both');
   }
+  const headers: Record<string, string> = {
+    ...((config.requestInit?.headers as Record<string, string> | undefined) ?? {}),
+    ...(config.auth ? { authorization: `Bearer ${config.auth}` } : {}),
+  };
+  return { requestInit: { ...config.requestInit, headers }, authProvider: config.authProvider };
 }
