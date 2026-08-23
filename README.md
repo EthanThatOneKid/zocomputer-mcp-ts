@@ -34,6 +34,16 @@ const result = await zo.bash({ cmd: 'echo hello' });
 console.log(result.text);
 ```
 
+### Browser / OAuth callers
+
+Instead of a static bearer token, pass an [`OAuthClientProvider`](https://github.com/modelcontextprotocol/typescript-sdk/blob/main/src/client/auth.ts) (OAuth 2.1 + PKCE) — the transport handles token refresh and authorization redirects for you. `auth` and `authProvider` are mutually exclusive:
+
+```ts
+import { ZoComputerClient, type OAuthClientProvider } from 'zocomputer-mcp-ts';
+
+const zo = new ZoComputerClient({ authProvider: myProvider });
+```
+
 Get an API key from Zo Computer's Settings → Advanced (`ZO_API_KEY` or `ZO_CLIENT_IDENTITY_TOKEN`).
 
 ## Tool inventory
