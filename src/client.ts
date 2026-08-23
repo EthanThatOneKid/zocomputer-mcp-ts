@@ -14,6 +14,8 @@ import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/
 import type { StreamableHTTPClientTransportOptions } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import type { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
 
+export const DEFAULT_BASE_URL = 'https://api.zo.computer/mcp';
+
 export interface McpClientConfig {
   /** Bearer token from Settings → Advanced (ZO_API_KEY or ZO_CLIENT_IDENTITY_TOKEN). */
   auth?: string;
@@ -49,10 +51,10 @@ export class McpClientBase {
   private readonly clientInfo: { name: string; version: string };
   private readonly requestInit?: RequestInit;
   private readonly injectedTransport?: Transport;
-  private clientInstance?: Client;
+  private _client?: Client;
 
   constructor(config: McpClientConfig = {}) {
-    this.baseUrl = (config.baseUrl ?? 'https://api.zo.computer/mcp').replace(/\/+$/, '');
+    this.baseUrl = (config.baseUrl ?? DEFAULT_BASE_URL).replace(/\/+$/, '');
     this.auth = config.auth;
     this.clientInfo = {
       name: config.clientInfo?.name ?? 'zocomputer-mcp-ts',
@@ -62,28 +64,23 @@ export class McpClientBase {
     this.injectedTransport = config.transport;
   }
 
-  /** Base URL after trailing-slash normalization. */
-  get baseUrlNormalized(): string {
-    return this.baseUrl;
-  }
-
   get isConnected(): boolean {
-    return this.clientInstance !== undefined;
+    return this._client !== undefined;
   }
 
   /** Info reported by the server during initialize(). */
   get serverInfo(): ReturnType<Client['getServerVersion']> {
-    return this.clientInstance?.getServerVersion();
+    return this._client?.getServerVersion();
   }
 
   /** Capabilities reported by the server during initialize(). */
   get serverCapabilities(): ReturnType<Client['getServerCapabilities']> {
-    return this.clientInstance?.getServerCapabilities();
+    return this._client?.getServerCapabilities();
   }
 
   /** Optional usage instructions reported by the server during initialize(). */
   get serverInstructions(): ReturnType<Client['getInstructions']> {
-    return this.clientInstance?.getInstructions();
+    return this._client?.getInstructions();
   }
 
   /**
@@ -91,18 +88,18 @@ export class McpClientBase {
    * notifications/initialized afterwards per spec).
    */
   async connect(): Promise<void> {
-    if (this.clientInstance) throw new Error('McpClientBase is already connected');
+    if (this._client) throw new Error('McpClientBase is already connected');
     const client = new Client(this.clientInfo, { capabilities: {} });
     const transport =
       this.injectedTransport ??
       new StreamableHTTPClientTransport(new URL(this.baseUrl), this.transportOptions());
     await client.connect(transport);
-    this.clientInstance = client;
+    this._client = client;
   }
 
   /** Standard `ping` — resolves if the server is alive. */
   async ping(): Promise<void> {
-    await this.client().ping();
+    await this.requireClient().ping();
   }
 
   /** Lists tools, following cursor pagination until exhausted. */
@@ -110,7 +107,7 @@ export class McpClientBase {
     const tools: Awaited<ReturnType<Client['listTools']>>['tools'] = [];
     let cursor: string | undefined;
     do {
-      const page = await this.client().listTools(cursor ? { cursor } : undefined);
+      const page = await this.requireClient().listTools(cursor ? { cursor } : undefined);
       tools.push(...page.tools);
       cursor = page.nextCursor;
     } while (cursor);
@@ -119,7 +116,7 @@ export class McpClientBase {
 
   /** Low-level tool call; generated methods wrap this for type safety. */
   async callTool<T = unknown>(name: string, args: object = {}): Promise<McpToolResult<T>> {
-    const result = await this.client().callTool({ name, arguments: args as Record<string, unknown> });
+    const result = await this.requireClient().callTool({ name, arguments: args as Record<string, unknown> });
     const content = (Array.isArray(result.content) ? result.content : []) as McpContentBlock[];
     const text = content
       .filter((block) => block.type === 'text')
@@ -136,13 +133,13 @@ export class McpClientBase {
 
   /** Closes the underlying transport/session. Safe to call more than once. */
   async close(): Promise<void> {
-    await this.clientInstance?.close();
-    this.clientInstance = undefined;
+    await this._client?.close();
+    this._client = undefined;
   }
 
-  private client(): Client {
-    if (!this.clientInstance) throw new Error('not connected — call connect() first');
-    return this.clientInstance;
+  private requireClient(): Client {
+    if (!this._client) throw new Error('not connected — call connect() first');
+    return this._client;
   }
 
   private transportOptions(): StreamableHTTPClientTransportOptions {

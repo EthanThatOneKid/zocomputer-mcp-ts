@@ -18,12 +18,17 @@ interface Names {
   interfaceName: string;
 }
 
+/** Deterministic tool ordering shared by naming, compilation, and emission. */
+function sortedTools(tools: ToolDefinition[]): ToolDefinition[] {
+  return [...tools].sort((a, b) => a.name.localeCompare(b.name));
+}
+
 function assignNames(tools: ToolDefinition[]): Map<string, Names> {
   const byMethod = new Map<string, number>();
   const byInterface = new Map<string, number>();
   const assigned = new Map<string, Names>();
 
-  for (const tool of [...tools].sort((a, b) => a.name.localeCompare(b.name))) {
+  for (const tool of sortedTools(tools)) {
     const baseMethod = sanitizeMethodName(tool.name);
     const methodCount = byMethod.get(baseMethod) ?? 0;
     byMethod.set(baseMethod, methodCount + 1);
@@ -50,7 +55,7 @@ export async function emitToolsModule(tools: ToolDefinition[], headerComment: st
 
   // Compile every inputSchema first; failures abort generation loudly.
   const interfaceSources = new Map<string, string>();
-  for (const tool of [...tools].sort((a, b) => a.name.localeCompare(b.name))) {
+  for (const tool of sortedTools(tools)) {
     const { interfaceName } = names.get(tool.name)!;
     interfaceSources.set(
       interfaceName,
@@ -106,7 +111,7 @@ export async function emitToolsModule(tools: ToolDefinition[], headerComment: st
     ],
   });
 
-  for (const tool of [...tools].sort((a, b) => a.name.localeCompare(b.name))) {
+  for (const tool of sortedTools(tools)) {
     const { methodName, interfaceName } = names.get(tool.name)!;
     klass.addMethod({
       name: methodName,

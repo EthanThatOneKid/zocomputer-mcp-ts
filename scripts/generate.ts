@@ -10,7 +10,7 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { McpClientBase } from '../src/client.js';
+import { McpClientBase, DEFAULT_BASE_URL } from '../src/client.js';
 import { emitToolsModule, type ToolDefinition } from './emitter.js';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -18,7 +18,7 @@ const ROOT = join(HERE, '..');
 const SNAPSHOT_PATH = join(ROOT, 'openapi', 'mcp-tools.json');
 const OUTPUT_PATH = join(ROOT, 'src', 'tools.gen.ts');
 
-const BASE_URL = process.env.ZO_MCP_URL ?? 'https://api.zo.computer/mcp';
+const BASE_URL = process.env.ZO_MCP_URL ?? DEFAULT_BASE_URL;
 const TOKEN = process.env.ZO_API_KEY ?? process.env.ZO_CLIENT_IDENTITY_TOKEN ?? '';
 
 const HEADER = [
