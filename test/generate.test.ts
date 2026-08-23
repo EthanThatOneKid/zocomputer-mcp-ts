@@ -8,7 +8,7 @@ import { readFile } from 'node:fs/promises';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ModuleKind, ModuleResolutionKind, Project, ScriptTarget } from 'ts-morph';
-import { emitToolsModule, type ToolDefinition } from '../scripts/emitter.js';
+import { docsUrlFor, emitToolsModule, hasDocsPage, type ToolDefinition } from '../scripts/emitter.js';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const GOLDEN_PATH = join(HERE, 'golden', 'tools.gen.txt');
@@ -94,6 +94,20 @@ function flattenDiagnostic(message: unknown): string {
     : '';
   return text + next;
 }
+
+describe('docsUrlFor', () => {
+  // Slugs verified against https://docs.zocomputer.com/llms.txt (tools/ pages).
+  it('maps tool names to kebab-case docs pages', () => {
+    assert.equal(docsUrlFor('bash'), 'https://docs.zocomputer.com/tools/bash.md');
+    assert.equal(docsUrlFor('edit_file_llm'), 'https://docs.zocomputer.com/tools/edit-file-llm.md');
+    assert.equal(docsUrlFor('grep_search'), 'https://docs.zocomputer.com/tools/grep-search.md');
+    assert.equal(docsUrlFor('set_active_persona'), 'https://docs.zocomputer.com/tools/set-active-persona.md');
+    assert.equal(
+      docsUrlFor('use_app_google_calendar'),
+      'https://docs.zocomputer.com/tools/use-app-google-calendar.md',
+    );
+  });
+});
 
 describe('emitToolsModule', () => {
   it('matches the committed golden file byte-for-byte', async () => {
@@ -182,6 +196,37 @@ describe('emitToolsModule', () => {
     );
     assert.doesNotMatch(out, /export interface \w+Result/);
     assert.match(out, /boolSchemaTool\(args: BoolSchemaToolArgs\): Promise<McpToolResult>/);
+  });
+
+  it('links every method to its official docs page', async () => {
+    const out = await emitToolsModule(FIXTURE_TOOLS, HEADER);
+    assert.match(
+      out,
+      /\* Search the web\.\r?\n\s+\* Docs: https:\/\/docs\.zocomputer\.com\/tools\/web-search\.md/,
+    );
+    // Description-less tools still get the link as their whole doc.
+    assert.match(out, /Docs: https:\/\/docs\.zocomputer\.com\/tools\/sum-two-numbers\.md/);
+    assert.match(out, /Docs: https:\/\/docs\.zocomputer\.com\/tools\/connect-telegram\.md/);
+  });
+
+  it('suppresses the Docs line for tools with no docs page', async () => {
+    assert.equal(hasDocsPage('bash'), true);
+    assert.equal(hasDocsPage('create_agent'), false);
+    assert.equal(hasDocsPage('tool_docs'), false);
+
+    const out = await emitToolsModule(
+      [
+        {
+          name: 'create_agent',
+          description: 'Undocumented upstream.',
+          inputSchema: { type: 'object', properties: {}, additionalProperties: false },
+        },
+      ],
+      HEADER,
+    );
+    // Description kept; no dead link emitted.
+    assert.match(out, /\/\*\* Undocumented upstream\. \*\//);
+    assert.doesNotMatch(out, /docs\.zocomputer\.com/);
   });
 
   it('handles an empty tool inventory', async () => {
