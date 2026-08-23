@@ -19,6 +19,7 @@
     "LICENSE"
   ],
   "scripts": {
+    "prepare": "npm run build",
     "build": "tsc -p tsconfig.json",
     "test": "tsx --test test/*.test.ts",
     "sync:mcp": "tsx ./scripts/generate.ts",
