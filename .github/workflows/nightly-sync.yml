@@ -1,0 +1,65 @@
+name: Nightly tool-inventory sync
+
+on:
+  schedule:
+    - cron: '0 5 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: nightly-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Live tools/list needs a ZO_API_KEY secret; without one the script
+      # falls back to the checked-in snapshot and this run is a no-op.
+      - name: Sync MCP tool inventory (best effort)
+        env:
+          ZO_API_KEY: ${{ secrets.ZO_API_KEY }}
+          ZO_CLIENT_IDENTITY_TOKEN: ${{ secrets.ZO_CLIENT_IDENTITY_TOKEN }}
+        run: npm run sync:mcp
+
+      - name: Detect tool-definition changes
+        id: detect
+        run: |
+          if git diff --quiet -- openapi/mcp-tools.json src/tools.gen.ts; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "No tool-definition changes; inventory already up to date."
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            git diff --stat -- openapi/mcp-tools.json src/tools.gen.ts
+          fi
+
+      - name: Stop when nothing changed
+        if: steps.detect.outputs.changed != 'true'
+        run: echo "Nothing to commit; sync complete."
+
+      - name: Test regenerated client
+        if: steps.detect.outputs.changed == 'true'
+        run: npm test
+
+      - name: Commit refreshed inventory
+        if: steps.detect.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add openapi/mcp-tools.json src/tools.gen.ts
+          git commit -m "chore(sync): refresh MCP tool inventory"
+          git push origin main

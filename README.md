@@ -118,32 +118,13 @@ npm test
 npm run build
 ```
 
-## Nightly release
+## Nightly inventory sync
 
-`.github/workflows/nightly-release.yml` runs nightly and on manual dispatch. It:
+`.github/workflows/nightly-sync.yml` runs nightly (05:00 UTC) and on manual dispatch. It refreshes the tool inventory, and when the snapshot or generated client changed, it runs the tests and commits the refresh directly to `main` — no npm publish involved. Live refresh requires a `ZO_API_KEY` repository secret; without one the run falls back to the checked-in snapshot and completes as a no-op.
 
-1. Syncs the MCP tool inventory (see below)
-2. Detects whether `openapi/mcp-tools.json` or package inputs changed
-3. Regenerates the client, runs the tests, and builds
-4. Bumps the patch version when needed
-5. Commits and pushes the updated snapshot
-6. Publishes the new version to npm
+## Publishing to npm
 
-Live tool refresh requires a `ZO_API_KEY` repository secret; without one the sync falls back to the checked-in snapshot and the nightly only publishes code changes.
-
-## npm trusted publishing
-
-This repository is set up for npm trusted publishing with GitHub Actions OIDC, not a long-lived `NPM_TOKEN`.
-
-Before nightly publish can work:
-
-1. Publish `zocomputer-mcp-ts` once manually from your npm account so the package exists on npm.
-2. In npm package settings, add a trusted publisher for:
-   - Owner: `EthanThatOneKid`
-   - Repository: `zocomputer-mcp-ts`
-   - Workflow filename: `nightly-release.yml`
-   - Allowed action: `npm publish`
-3. After OIDC publish is working, remove any old publish token and lock the package to trusted publishing in npm settings.
+Not set up yet — tracked in [#8](https://github.com/EthanThatOneKid/zocomputer-mcp-ts/issues/8) (one-time manual bootstrap + trusted-publisher registration). Until then, install straight from GitHub (see [Install](#install)).
 
 ## License
 
