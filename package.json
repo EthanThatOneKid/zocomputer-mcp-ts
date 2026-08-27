@@ -1,5 +1,5 @@
 {
-  "name": "zocomputer-mcp-ts",
+  "name": "zocomputer-tools",
   "version": "0.1.0",
   "description": "Unofficial TypeScript MCP client for programmatic usage of Zo Computer's tools over the streamable HTTP transport",
   "type": "module",
@@ -29,7 +29,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/EthanThatOneKid/zocomputer-mcp-ts.git"
+    "url": "git+https://github.com/EthanThatOneKid/zocomputer-tools.git"
   },
   "keywords": [
     "zo",
@@ -42,9 +42,9 @@
   ],
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/EthanThatOneKid/zocomputer-mcp-ts/issues"
+    "url": "https://github.com/EthanThatOneKid/zocomputer-tools/issues"
   },
-  "homepage": "https://github.com/EthanThatOneKid/zocomputer-mcp-ts#readme",
+  "homepage": "https://github.com/EthanThatOneKid/zocomputer-tools#readme",
   "publishConfig": {
     "access": "public"
   },

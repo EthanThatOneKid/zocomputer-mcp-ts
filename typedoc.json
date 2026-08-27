@@ -1,6 +1,6 @@
 {
   "$schema": "https://typedoc.org/schema.json",
-  "name": "zocomputer-mcp-ts",
+  "name": "zocomputer-tools",
   "entryPoints": ["src/index.ts"],
   "out": "generated-docs",
   "includeVersion": true,

@@ -73,7 +73,7 @@ export class McpClientBase {
     // Resolving here also validates credential exclusivity before any I/O.
     this.streamableOptions = resolveTransportOptions(config);
     this.clientInfo = {
-      name: config.clientInfo?.name ?? 'zocomputer-mcp-ts',
+      name: config.clientInfo?.name ?? 'zocomputer-tools',
       version: config.clientInfo?.version ?? '0.1.0',
     };
     this.injectedTransport = config.transport;
