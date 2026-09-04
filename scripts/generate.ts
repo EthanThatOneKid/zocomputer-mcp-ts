@@ -18,7 +18,7 @@ const ROOT = join(HERE, '..');
 const SNAPSHOT_PATH = join(ROOT, 'openapi', 'mcp-tools.json');
 const OUTPUT_PATH = join(ROOT, 'src', 'tools.gen.ts');
 
-const BASE_URL = process.env.ZO_MCP_URL ?? DEFAULT_BASE_URL;
+const BASE_URL = (process.env.ZO_MCP_URL ?? DEFAULT_BASE_URL).replace(/\/+$/, '');
 const TOKEN = process.env.ZO_API_KEY ?? process.env.ZO_CLIENT_IDENTITY_TOKEN ?? '';
 
 const HEADER = [
@@ -46,6 +46,7 @@ async function fetchLiveTools(): Promise<ToolDefinition[]> {
     const response = await fetch(BASE_URL, {
       method: 'POST',
       headers,
+      signal: AbortSignal.timeout(60_000),
       body: JSON.stringify({
         jsonrpc: '2.0',
         id: ++rpcId,
@@ -53,13 +54,19 @@ async function fetchLiveTools(): Promise<ToolDefinition[]> {
         params: cursor ? { cursor } : {},
       }),
     });
+    const raw = await response.text();
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status} from ${BASE_URL}`);
+      throw new Error(`HTTP ${response.status} from ${BASE_URL}: ${raw.slice(0, 200)}`);
     }
-    const payload = (await response.json()) as {
+    let payload: {
       result?: { tools?: ToolDefinition[]; nextCursor?: string };
       error?: { code?: number; message?: string };
     };
+    try {
+      payload = JSON.parse(raw);
+    } catch {
+      throw new Error(`non-JSON response from ${BASE_URL}: ${raw.slice(0, 200)}`);
+    }
     if (payload.error) {
       throw new Error(`JSON-RPC ${payload.error.code}: ${payload.error.message}`);
     }
