@@ -10,7 +10,7 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { McpClientBase, DEFAULT_BASE_URL } from '@/client.js';
+import { DEFAULT_BASE_URL } from '@/client.js';
 import { emitToolsModule, type ToolDefinition } from './emitter.js';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -27,14 +27,46 @@ const HEADER = [
   '',
 ].join('\n');
 
+let rpcId = 0;
+
+// api.zo.computer/mcp never completes a streamable-HTTP `initialize`
+// handshake, but it does serve `tools/list` as a stateless JSON-RPC POST
+// (no session required). Fetch it directly instead of going through the SDK
+// client so nightly sync can run without a live MCP session.
 async function fetchLiveTools(): Promise<ToolDefinition[]> {
-  const mcp = new McpClientBase({ baseUrl: BASE_URL, auth: TOKEN || undefined });
-  await mcp.connect();
-  try {
-    return (await mcp.listTools()) as ToolDefinition[];
-  } finally {
-    await mcp.close();
-  }
+  const headers: Record<string, string> = {
+    'content-type': 'application/json',
+    accept: 'application/json, text/event-stream',
+  };
+  if (TOKEN) headers.authorization = `Bearer ${TOKEN}`;
+
+  const tools: ToolDefinition[] = [];
+  let cursor: string | undefined;
+  do {
+    const response = await fetch(BASE_URL, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        id: ++rpcId,
+        method: 'tools/list',
+        params: cursor ? { cursor } : {},
+      }),
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status} from ${BASE_URL}`);
+    }
+    const payload = (await response.json()) as {
+      result?: { tools?: ToolDefinition[]; nextCursor?: string };
+      error?: { code?: number; message?: string };
+    };
+    if (payload.error) {
+      throw new Error(`JSON-RPC ${payload.error.code}: ${payload.error.message}`);
+    }
+    tools.push(...(payload.result?.tools ?? []));
+    cursor = payload.result?.nextCursor;
+  } while (cursor);
+  return tools;
 }
 
 async function readSnapshotTools(): Promise<ToolDefinition[]> {
