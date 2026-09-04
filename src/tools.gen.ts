@@ -193,11 +193,6 @@ export interface EditSpaceRouteArgs {
     public?: string;
 }
 
-export interface FindFileConversationsArgs {
-    file_path: string;
-    limit?: number;
-}
-
 export interface FindSimilarLinksArgs {
     url: string;
     include_domains?: string[];
@@ -254,37 +249,6 @@ export interface GenerateVideoArgs {
 
 export interface GetAutomationArgs {
     automation_id: string;
-}
-
-export interface GetDiscordHistoryArgs {
-    channel_id?: string;
-    around?: string;
-    before?: string;
-    after?: string;
-    limit?: number;
-}
-
-export interface GetDiscordInfoArgs {
-    resource?: string;
-    guild_id?: string;
-    limit?: number;
-}
-
-export interface GetSlackHistoryArgs {
-    channel_id?: string;
-    team_id?: string;
-    thread_ts?: string;
-    latest?: string;
-    oldest?: string;
-    cursor?: string;
-    limit?: number;
-}
-
-export interface GetSlackInfoArgs {
-    resource?: string;
-    team_id?: string;
-    limit?: number;
-    cursor?: string;
 }
 
 export interface GetSpaceErrorsArgs {
@@ -390,11 +354,6 @@ export interface ReadFileArgs {
     pdf_epub_include_images?: boolean;
 }
 
-export interface ReadFileConversationContextArgs {
-    file_path: string;
-    conversation_id: string;
-}
-
 export interface ReadWebpageArgs {
     url: string;
     use_browser?: "true" | "false" | "";
@@ -430,25 +389,6 @@ export interface SearchAppCatalogArgs {
     query: string;
 }
 
-export interface SendDiscordMessageArgs {
-    /**
-     * The text content. Must be non-empty.
-     */
-    message: string;
-    /**
-     * Optional Discord message ID to reply to.
-     */
-    reply_to_message_id?: string;
-    /**
-     * Optional Discord thread ID to send into.
-     */
-    thread_id?: string;
-    /**
-     * Optional Discord channel ID to send into.
-     */
-    channel_id?: string;
-}
-
 export interface SendEmailToUserArgs {
     /**
      * Email subject line. Must be non-empty.
@@ -464,38 +404,19 @@ export interface SendEmailToUserArgs {
     attachments?: string[];
 }
 
-export interface SendSlackMessageArgs {
+export interface SendSmsToUserArgs {
     /**
      * The text content. May be empty when media_files is provided.
      */
     message: string;
     /**
-     * Override thread to send to.
-     */
-    thread_id?: string;
-    /**
-     * Override channel to send to.
-     */
-    channel_id?: string;
-    /**
-     * Absolute file paths to send as file attachments.
-     */
-    media_files?: string[];
-}
-
-export interface SendTelegramMessageArgs {
-    /**
-     * The text content to send. Omit or leave empty only when
-     */
-    message?: string;
-    /**
-     * Absolute file paths to send as media attachments. Optional;
+     * Absolute file paths to send as MMS attachments.
      */
     media_files?: string[];
     /**
-     * Username or user ID of a specific connected Telegram account.
+     * Name of a registered contact. If omitted, sends to the user.
      */
-    recipient?: string;
+    contact_name?: string;
 }
 
 export interface ServiceDoctorArgs {
@@ -617,63 +538,12 @@ export interface UpdateUserSettingsArgs {
     value: string;
 }
 
-export interface UseAppDropboxArgs {
-    tool_name: string;
-    configured_props: {
-        [k: string]: unknown;
-        };
-    download_path?: string;
-    email?: string;
-}
-
 export interface UseAppGmailArgs {
     tool_name: string;
     configured_props: {
         [k: string]: unknown;
         };
     download_path?: string;
-    email?: string;
-}
-
-export interface UseAppGoogleTasksArgs {
-    tool_name: string;
-    configured_props: {
-        [k: string]: unknown;
-        };
-    email?: string;
-}
-
-export interface UseAppMicrosoftOnedriveArgs {
-    tool_name: string;
-    configured_props: {
-        [k: string]: unknown;
-        };
-    download_path?: string;
-    email?: string;
-}
-
-export interface UseAppNotionArgs {
-    tool_name: string;
-    configured_props: {
-        [k: string]: unknown;
-        };
-    email?: string;
-}
-
-export interface UseAppXArgs {
-    tool_name: string;
-    configured_props: {
-        [k: string]: unknown;
-        };
-    username?: string;
-}
-
-export interface UseIntegrationArgs {
-    app_slug: string;
-    tool_name: string;
-    configured_props: {
-        [k: string]: unknown;
-        };
     email?: string;
 }
 
@@ -775,7 +645,7 @@ export interface XSearchArgs {
     enable_video_understanding?: boolean;
 }
 
-export const TOOL_NAMES = ["bash", "connect_integration", "connect_telegram", "copy_file", "create_agent", "create_automation", "create_persona", "create_rule", "create_website", "delete_agent", "delete_automation", "delete_persona", "delete_rule", "delete_space_asset", "delete_space_route", "delete_user_service", "edit_agent", "edit_automation", "edit_file", "edit_file_llm", "edit_image", "edit_persona", "edit_rule", "edit_space_route", "find_file_conversations", "find_similar_links", "generate_d2_diagram", "generate_image", "generate_speech", "generate_video", "get_automation", "get_discord_history", "get_discord_info", "get_slack_history", "get_slack_info", "get_space_errors", "get_space_route", "get_space_route_history", "get_space_settings", "grep_search", "image_search", "list_agents", "list_app_tools", "list_automations", "list_available_scopes", "list_directory", "list_personas", "list_rules", "list_space_assets", "list_space_routes", "list_user_services", "maps_search", "open_webpage", "proxy_local_service", "publish_site", "read_file", "read_file_conversation_context", "read_webpage", "redo_space_route", "register_user_service", "restart_space_server", "save_webpage", "search_app_catalog", "send_discord_message", "send_email_to_user", "send_slack_message", "send_telegram_message", "service_doctor", "set_active_persona", "set_persona_scopes", "tool_docs", "transcribe_audio", "transcribe_video", "undo_space_route", "unpublish_site", "update_space_asset", "update_space_settings", "update_user_service", "update_user_settings", "use_app_dropbox", "use_app_gmail", "use_app_google_tasks", "use_app_microsoft_onedrive", "use_app_notion", "use_app_x", "use_integration", "use_webpage", "view_webpage", "web_research", "web_search", "write_file", "write_space_route", "x_search"] as const;
+export const TOOL_NAMES = ["bash", "connect_integration", "connect_telegram", "copy_file", "create_agent", "create_automation", "create_persona", "create_rule", "create_website", "delete_agent", "delete_automation", "delete_persona", "delete_rule", "delete_space_asset", "delete_space_route", "delete_user_service", "edit_agent", "edit_automation", "edit_file", "edit_file_llm", "edit_image", "edit_persona", "edit_rule", "edit_space_route", "find_similar_links", "generate_d2_diagram", "generate_image", "generate_speech", "generate_video", "get_automation", "get_space_errors", "get_space_route", "get_space_route_history", "get_space_settings", "grep_search", "image_search", "list_agents", "list_app_tools", "list_automations", "list_available_scopes", "list_directory", "list_personas", "list_rules", "list_space_assets", "list_space_routes", "list_user_services", "maps_search", "open_webpage", "proxy_local_service", "publish_site", "read_file", "read_webpage", "redo_space_route", "register_user_service", "restart_space_server", "save_webpage", "search_app_catalog", "send_email_to_user", "send_sms_to_user", "service_doctor", "set_active_persona", "set_persona_scopes", "tool_docs", "transcribe_audio", "transcribe_video", "undo_space_route", "unpublish_site", "update_space_asset", "update_space_settings", "update_user_service", "update_user_settings", "use_app_gmail", "use_webpage", "view_webpage", "web_research", "web_search", "write_file", "write_space_route", "x_search"] as const;
 
 /**
  * Typed convenience methods for every tool Zo Computer exposes over MCP.
@@ -1005,14 +875,6 @@ export class ZoComputerClient extends McpClientBase {
         return this.callTool("edit_space_route", args);
     }
 
-    /**
-     * Find prior conversations linked to one exact workspace file path.
-     * Docs: https://docs.zocomputer.com/tools/find-file-conversations.md
-     */
-    findFileConversations(args: FindFileConversationsArgs): Promise<McpToolResult> {
-        return this.callTool("find_file_conversations", args);
-    }
-
     /** Docs: https://docs.zocomputer.com/tools/find-similar-links.md */
     findSimilarLinks(args: FindSimilarLinksArgs): Promise<McpToolResult> {
         return this.callTool("find_similar_links", args);
@@ -1041,26 +903,6 @@ export class ZoComputerClient extends McpClientBase {
     /** Docs: https://docs.zocomputer.com/tools/get-automation.md */
     getAutomation(args: GetAutomationArgs): Promise<McpToolResult> {
         return this.callTool("get_automation", args);
-    }
-
-    /** Docs: https://docs.zocomputer.com/tools/get-discord-history.md */
-    getDiscordHistory(args: GetDiscordHistoryArgs): Promise<McpToolResult> {
-        return this.callTool("get_discord_history", args);
-    }
-
-    /** Docs: https://docs.zocomputer.com/tools/get-discord-info.md */
-    getDiscordInfo(args: GetDiscordInfoArgs): Promise<McpToolResult> {
-        return this.callTool("get_discord_info", args);
-    }
-
-    /** Docs: https://docs.zocomputer.com/tools/get-slack-history.md */
-    getSlackHistory(args: GetSlackHistoryArgs): Promise<McpToolResult> {
-        return this.callTool("get_slack_history", args);
-    }
-
-    /** Docs: https://docs.zocomputer.com/tools/get-slack-info.md */
-    getSlackInfo(args: GetSlackInfoArgs): Promise<McpToolResult> {
-        return this.callTool("get_slack_info", args);
     }
 
     /**
@@ -1218,14 +1060,6 @@ export class ZoComputerClient extends McpClientBase {
         return this.callTool("read_file", args);
     }
 
-    /**
-     * Read one exact source turn from a live file/conversation provenance edge.
-     * Docs: https://docs.zocomputer.com/tools/read-file-conversation-context.md
-     */
-    readFileConversationContext(args: ReadFileConversationContextArgs): Promise<McpToolResult> {
-        return this.callTool("read_file_conversation_context", args);
-    }
-
     /** Docs: https://docs.zocomputer.com/tools/read-webpage.md */
     readWebpage(args: ReadWebpageArgs): Promise<McpToolResult> {
         return this.callTool("read_webpage", args);
@@ -1289,21 +1123,6 @@ export class ZoComputerClient extends McpClientBase {
     }
 
     /**
-     * Send a message via Discord.
-     *
-     * Args:
-     *     ctx: Runtime context.
-     *     message: The text content. Must be non-empty.
-     *     reply_to_message_id: Optional Discord message ID to reply to.
-     *     thread_id: Optional Discord thread ID to send into.
-     *     channel_id: Optional Discord channel ID to send into.
-     * Docs: https://docs.zocomputer.com/tools/send-discord-message.md
-     */
-    sendDiscordMessage(args: SendDiscordMessageArgs): Promise<McpToolResult> {
-        return this.callTool("send_discord_message", args);
-    }
-
-    /**
      * Send an email to the user.
      *
      * Args:
@@ -1318,36 +1137,17 @@ export class ZoComputerClient extends McpClientBase {
     }
 
     /**
-     * Send a message via Slack.
+     * Send an SMS text message to the user or a contact.
      *
      * Args:
      *     ctx: Runtime context.
      *     message: The text content. May be empty when media_files is provided.
-     *     thread_id: Override thread to send to.
-     *     channel_id: Override channel to send to.
-     *     media_files: Absolute file paths to send as file attachments.
-     * Docs: https://docs.zocomputer.com/tools/send-slack-message.md
+     *     media_files: Absolute file paths to send as MMS attachments.
+     *     contact_name: Name of a registered contact. If omitted, sends to the user.
+     * Docs: https://docs.zocomputer.com/tools/send-sms-to-user.md
      */
-    sendSlackMessage(args: SendSlackMessageArgs): Promise<McpToolResult> {
-        return this.callTool("send_slack_message", args);
-    }
-
-    /**
-     * Send a message to the user via Telegram.
-     *
-     * Args:
-     *     ctx: Runtime context.
-     *     message: The text content to send. Omit or leave empty only when
-     *         media_files is provided (e.g. sending an image with no caption).
-     *     media_files: Absolute file paths to send as media attachments. Optional;
-     *         most messages are text-only and omit this.
-     *     recipient: Username or user ID of a specific connected Telegram account.
-     *         Leave empty in the normal single-account case — the message goes to
-     *         the user automatically. There is no contact/contact_name parameter.
-     * Docs: https://docs.zocomputer.com/tools/send-telegram-message.md
-     */
-    sendTelegramMessage(args: SendTelegramMessageArgs): Promise<McpToolResult> {
-        return this.callTool("send_telegram_message", args);
+    sendSmsToUser(args: SendSmsToUserArgs): Promise<McpToolResult> {
+        return this.callTool("send_sms_to_user", args);
     }
 
     /** Docs: https://docs.zocomputer.com/tools/service-doctor.md */
@@ -1475,57 +1275,9 @@ export class ZoComputerClient extends McpClientBase {
         return this.callTool("update_user_settings", args);
     }
 
-    /** Docs: https://docs.zocomputer.com/tools/use-app-dropbox.md */
-    useAppDropbox(args: UseAppDropboxArgs): Promise<McpToolResult> {
-        return this.callTool("use_app_dropbox", args);
-    }
-
     /** Docs: https://docs.zocomputer.com/tools/use-app-gmail.md */
     useAppGmail(args: UseAppGmailArgs): Promise<McpToolResult> {
         return this.callTool("use_app_gmail", args);
-    }
-
-    /** Docs: https://docs.zocomputer.com/tools/use-app-google-tasks.md */
-    useAppGoogleTasks(args: UseAppGoogleTasksArgs): Promise<McpToolResult> {
-        return this.callTool("use_app_google_tasks", args);
-    }
-
-    /** Docs: https://docs.zocomputer.com/tools/use-app-microsoft-onedrive.md */
-    useAppMicrosoftOnedrive(args: UseAppMicrosoftOnedriveArgs): Promise<McpToolResult> {
-        return this.callTool("use_app_microsoft_onedrive", args);
-    }
-
-    /** Docs: https://docs.zocomputer.com/tools/use-app-notion.md */
-    useAppNotion(args: UseAppNotionArgs): Promise<McpToolResult> {
-        return this.callTool("use_app_notion", args);
-    }
-
-    /** Docs: https://docs.zocomputer.com/tools/use-app-x.md */
-    useAppX(args: UseAppXArgs): Promise<McpToolResult> {
-        return this.callTool("use_app_x", args);
-    }
-
-    /**
-     * Run an action on a connected Pipedream catalog app.
-     *
-     * For long-tail integrations that do NOT have a dedicated ``use_app_*`` tool.
-     * When a dedicated tool exists for the app, use that instead — it has
-     * app-specific handling this generic tool does not.
-     *
-     * Catalog apps are beyond Zo's verified set; Zo has not tested them, so
-     * reliability varies. Workflow:
-     *
-     *   1. ``search_app_catalog(query)`` — find the app and its ``app_slug``.
-     *   2. ``connect_integration(app_slug)`` — if it isn't connected yet.
-     *   3. ``list_app_tools(app_slug)`` — get the action names + parameters.
-     *   4. ``use_integration(app_slug, tool_name, configured_props={...})``.
-     *
-     * Pass action parameters as keys in ``configured_props``. The app-auth prop
-     * is injected automatically — do not include it.
-     * Docs: https://docs.zocomputer.com/tools/use-integration.md
-     */
-    useIntegration(args: UseIntegrationArgs): Promise<McpToolResult> {
-        return this.callTool("use_integration", args);
     }
 
     /** Docs: https://docs.zocomputer.com/tools/use-webpage.md */
