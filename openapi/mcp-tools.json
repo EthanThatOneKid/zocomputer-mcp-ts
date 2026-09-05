@@ -1,8 +1,40 @@
 {
   "tools": [
     {
-      "name": "list_space_routes",
-      "description": "List all routes in the user's zo.space site.",
+      "name": "transcribe_video",
+      "description": "",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "video_file_path": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "video_file_path"
+        ]
+      }
+    },
+    {
+      "name": "search_app_catalog",
+      "description": "Search Pipedream's full catalog of 1000+ app integrations by keyword.\n\nUse this to find an integration that does NOT have a dedicated `use_app_*`\ntool. Returns matching apps with their `app_slug`, name, and description,\nplus whether the workspace has already connected each one.\n\nCatalog apps are beyond Zo's curated, verified set — they work, but Zo has\nnot tested them, so reliability varies. When a dedicated `use_app_*` tool\nexists for what the user wants, prefer that.\n\nOnce you've found an app:\n  1. `connect_integration(app_slug)` — if it isn't connected yet.\n  2. `list_app_tools(app_slug)` — see its actions and parameters.\n  3. `use_integration(app_slug, tool_name, configured_props={...})`.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "query"
+        ]
+      }
+    },
+    {
+      "name": "list_personas",
+      "description": "",
       "inputSchema": {
         "type": "object",
         "properties": {},
@@ -10,14 +42,81 @@
       }
     },
     {
-      "name": "redo_space_route",
-      "description": "Redo a previously undone change to a space route, restoring the next version.\n\nThis can redo code changes and also redo deletions.\nHistory persists across host reboots.\n\nArgs:\n    path: Route path to redo, e.g. '/about' or '/api/hello'.",
+      "name": "read_webpage",
+      "description": "",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "use_browser": {
+            "enum": [
+              "true",
+              "false",
+              ""
+            ],
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "url"
+        ]
+      }
+    },
+    {
+      "name": "maps_search",
+      "description": "Search Google Maps for locations.\n\nThis tool utilizes a subagent that uses the Google Maps API as a tool to search for locations following the provided query prompt.\nExample use cases:\n- Place-specific questions: \"Is there a cafe near the corner of 1st and Main that has outdoor seating?\"\n- Finding the best locations by reviews: \"Which family-friendly restaurants near here have the best playground reviews?\"\n- Itinerary planning: \"Plan a day in San Francisco for me. I want to see the Golden Gate Bridge, visit a museum, and have a nice dinner.\"\n\nArgs:\n    query: Natural language prompt describing what to find on Google Maps.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Natural language prompt describing what to find on Google Maps."
+          },
+          "location": {
+            "type": "string"
+          },
+          "open_now": {
+            "enum": [
+              "true",
+              "false",
+              ""
+            ],
+            "type": "string"
+          },
+          "min_rating": {
+            "type": "number"
+          },
+          "included_type": {
+            "type": "string"
+          },
+          "price_level": {
+            "type": "string"
+          },
+          "language": {
+            "type": "string"
+          },
+          "region": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "query"
+        ]
+      }
+    },
+    {
+      "name": "get_space_route_history",
+      "description": "View the full version history of a space route.\n\nShows all versions (past and future relative to current position)\nwith action type and code preview. Use undo/redo to navigate.\n\nArgs:\n    path: Route path, e.g. '/about' or '/api/hello'.",
       "inputSchema": {
         "type": "object",
         "properties": {
           "path": {
             "type": "string",
-            "description": "Route path to redo, e.g. '/about' or '/api/hello'."
+            "description": "Route path, e.g. '/about' or '/api/hello'."
           }
         },
         "additionalProperties": false,
@@ -27,44 +126,130 @@
       }
     },
     {
-      "name": "list_available_scopes",
-      "description": "",
-      "inputSchema": {
-        "type": "object",
-        "properties": {},
-        "additionalProperties": false
-      }
-    },
-    {
-      "name": "edit_file_llm",
+      "name": "find_similar_links",
       "description": "",
       "inputSchema": {
         "type": "object",
         "properties": {
-          "target_file": {
+          "url": {
             "type": "string"
           },
-          "code_edit": {
+          "include_domains": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "exclude_domains": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "exclude_source_domain": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "url"
+        ]
+      }
+    },
+    {
+      "name": "web_search",
+      "description": "",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": {
             "type": "string"
           },
-          "instructions": {
+          "time_range": {
+            "type": "string"
+          },
+          "include_domains": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "topic": {
             "type": "string"
           }
         },
         "additionalProperties": false,
         "required": [
-          "target_file",
-          "code_edit"
+          "query"
         ]
       }
     },
     {
-      "name": "get_space_errors",
-      "description": "Get recent errors from the user's zo.space routes.\n\nErrors are logged when routes fail to load, build, or execute.\nAlso includes recent stderr output from the server.\nUse this to debug issues with space routes.",
+      "name": "publish_site",
+      "description": "",
       "inputSchema": {
         "type": "object",
-        "properties": {},
-        "additionalProperties": false
+        "properties": {
+          "site_path": {
+            "type": "string"
+          },
+          "public": {
+            "enum": [
+              "true",
+              "false",
+              ""
+            ],
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "site_path"
+        ]
+      }
+    },
+    {
+      "name": "tool_docs",
+      "description": "",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "tool_name": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "tool_name"
+        ]
+      }
+    },
+    {
+      "name": "send_sms_to_user",
+      "description": "Send an SMS text message to the user or a contact.\n\nArgs:\n    ctx: Runtime context.\n    message: The text content. May be empty when media_files is provided.\n    media_files: Absolute file paths to send as MMS attachments.\n    contact_name: Name of a registered contact. If omitted, sends to the user.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "description": "The text content. May be empty when media_files is provided."
+          },
+          "media_files": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "description": "Absolute file paths to send as MMS attachments."
+          },
+          "contact_name": {
+            "type": "string",
+            "description": "Name of a registered contact. If omitted, sends to the user."
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "message"
+        ]
       }
     },
     {
@@ -85,11 +270,138 @@
       }
     },
     {
-      "name": "view_webpage",
+      "name": "create_rule",
       "description": "",
       "inputSchema": {
         "type": "object",
-        "properties": {},
+        "properties": {
+          "instruction": {
+            "type": "string"
+          },
+          "condition": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "instruction"
+        ]
+      }
+    },
+    {
+      "name": "update_user_service",
+      "description": "",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "service_id": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "mode": {
+            "enum": [
+              "http",
+              "tcp",
+              "process",
+              ""
+            ],
+            "type": "string"
+          },
+          "local_port": {
+            "type": "integer"
+          },
+          "entrypoint": {
+            "type": "string"
+          },
+          "workdir": {
+            "type": "string"
+          },
+          "env_vars": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "public": {
+            "enum": [
+              "true",
+              "false",
+              ""
+            ],
+            "type": "string"
+          },
+          "enabled": {
+            "enum": [
+              "true",
+              "false",
+              ""
+            ],
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "service_id"
+        ]
+      }
+    },
+    {
+      "name": "update_space_settings",
+      "description": "Update space settings — either globally or for a single page route.\n\nBy default (`path=\"\"`) the call updates space-wide settings stored in\n`site-settings.json`. Pass a route path (e.g. `path=\"/\"` for the home page\nor `path=\"/about\"`) to apply the change as a per-page override that\ninherits from the space defaults when unset.\n\nOnly provided arguments are changed; omitted arguments keep their current\nvalues. Pass \"default\" for any string field to clear it (revert to the\nspace default when path is set, revert to the built-in default when path\nis empty). Triggers a zo-space server restart so changes take effect\nimmediately.\n\nPer-page overrides only support `site_title`, `site_description`,\n`og_image_url`, and `noindex` — they map onto `page_title`,\n`page_description`, `page_og_image_url`, and `page_noindex` (\"block\" /\n\"allow\"). The other fields apply space-globally only and will be\nrejected if combined with a non-empty `path`.\n\nArgs:\n    path: Empty string for space-global settings (default), or a route\n        path like \"/\" (home) or \"/about\" to update that page's metadata\n        overrides. Note: \"\" is the global sentinel and is distinct from\n        \"/\" which is the home route.\n    site_title: Title override. Pass \"default\" to reset/clear.\n    site_description: Meta description. Pass \"default\" to reset/clear.\n    og_image_url: Asset path for OG image (e.g. \"/assets/og.png\"). Must\n        be a space asset, not an external URL. Pass \"default\" to revert.\n    favicon_url: Asset path for favicon. Space-global only.\n    custom_head_html: HTML injected into <head>. Space-global only.\n    robots_txt: Custom robots.txt content. Space-global only.\n    noindex: \"true\" adds noindex/nofollow; \"false\" removes it; \"default\"\n        clears any per-page override (and inherits from the space).\n    custom_404_route: Route path for custom 404 page. Space-global only.\n    lang: HTML lang attribute value. Space-global only.\n    atproto_did: AT Protocol DID for domain verification. Space-global only.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Empty string for space-global settings (default), or a route"
+          },
+          "site_title": {
+            "type": "string",
+            "description": "Title override. Pass \"default\" to reset/clear."
+          },
+          "site_description": {
+            "type": "string",
+            "description": "Meta description. Pass \"default\" to reset/clear."
+          },
+          "og_image_url": {
+            "type": "string",
+            "description": "Asset path for OG image (e.g. \"/assets/og.png\"). Must"
+          },
+          "favicon_url": {
+            "type": "string",
+            "description": "Asset path for favicon. Space-global only."
+          },
+          "custom_head_html": {
+            "type": "string",
+            "description": "HTML injected into <head>. Space-global only."
+          },
+          "robots_txt": {
+            "type": "string",
+            "description": "Custom robots.txt content. Space-global only."
+          },
+          "noindex": {
+            "enum": [
+              "true",
+              "false",
+              "default",
+              ""
+            ],
+            "type": "string",
+            "description": "\"true\" adds noindex/nofollow; \"false\" removes it; \"default\""
+          },
+          "custom_404_route": {
+            "type": "string",
+            "description": "Route path for custom 404 page. Space-global only."
+          },
+          "lang": {
+            "type": "string",
+            "description": "HTML lang attribute value. Space-global only."
+          },
+          "atproto_did": {
+            "type": "string",
+            "description": "AT Protocol DID for domain verification. Space-global only."
+          }
+        },
         "additionalProperties": false
       }
     },
@@ -121,175 +433,6 @@
         "additionalProperties": false,
         "required": [
           "query"
-        ]
-      }
-    },
-    {
-      "name": "restart_space_server",
-      "description": "Stop zo.space, clean-install dependencies, rebuild, and start it again.\n\nUse when the space is crash-looping, serving stale content, or has corrupted dependencies.\n\nArgs: (none)",
-      "inputSchema": {
-        "type": "object",
-        "properties": {},
-        "additionalProperties": false
-      }
-    },
-    {
-      "name": "create_persona",
-      "description": "",
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string"
-          },
-          "prompt": {
-            "type": "string"
-          },
-          "image": {
-            "type": "string"
-          },
-          "image_hue": {
-            "type": "integer"
-          },
-          "model": {
-            "type": "string"
-          }
-        },
-        "additionalProperties": false,
-        "required": [
-          "name",
-          "prompt"
-        ]
-      }
-    },
-    {
-      "name": "copy_file",
-      "description": "",
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "source_path": {
-            "type": "string"
-          },
-          "dest_path": {
-            "type": "string"
-          }
-        },
-        "additionalProperties": false,
-        "required": [
-          "source_path",
-          "dest_path"
-        ]
-      }
-    },
-    {
-      "name": "list_directory",
-      "description": "",
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "path": {
-            "type": "string"
-          },
-          "ignore": {
-            "items": {
-              "type": "string"
-            },
-            "type": "array"
-          }
-        },
-        "additionalProperties": false,
-        "required": [
-          "path"
-        ]
-      }
-    },
-    {
-      "name": "set_persona_scopes",
-      "description": "Set the tool permission scopes on a persona.\n\nArgs:\n    persona_id: Identifier of the persona to update.\n    scopes: List of scope names (e.g. ['files:read', 'web:search']) or a\n        single preset alias (e.g. ['all'], ['workspace'], ['read_only']).\n        Pass an empty list for chat-only (no tools).",
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "persona_id": {
-            "type": "string",
-            "description": "Identifier of the persona to update."
-          },
-          "scopes": {
-            "items": {
-              "type": "string"
-            },
-            "type": "array",
-            "description": "List of scope names (e.g. ['files:read', 'web:search']) or a"
-          }
-        },
-        "additionalProperties": false,
-        "required": [
-          "persona_id",
-          "scopes"
-        ]
-      }
-    },
-    {
-      "name": "read_webpage",
-      "description": "",
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "url": {
-            "type": "string"
-          },
-          "use_browser": {
-            "enum": [
-              "true",
-              "false",
-              ""
-            ],
-            "type": "string"
-          }
-        },
-        "additionalProperties": false,
-        "required": [
-          "url"
-        ]
-      }
-    },
-    {
-      "name": "create_website",
-      "description": "",
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string"
-          },
-          "variant": {
-            "enum": [
-              "blank",
-              "blog",
-              "event",
-              "slides",
-              "data",
-              "marketing",
-              "portfolio",
-              "kb",
-              "waitlist",
-              "storefront"
-            ],
-            "type": "string"
-          },
-          "parent_path_parts": {
-            "items": {
-              "type": "string"
-            },
-            "type": "array"
-          },
-          "force": {
-            "type": "boolean"
-          }
-        },
-        "additionalProperties": false,
-        "required": [
-          "name"
         ]
       }
     },
@@ -546,7 +689,7 @@
       }
     },
     {
-      "name": "create_rule",
+      "name": "generate_video",
       "description": "",
       "inputSchema": {
         "type": "object",
@@ -554,7 +697,56 @@
           "instruction": {
             "type": "string"
           },
-          "condition": {
+          "filepath": {
+            "type": "string"
+          },
+          "file_suffix": {
+            "type": "string"
+          },
+          "orientation": {
+            "enum": [
+              "landscape",
+              "portrait"
+            ],
+            "type": "string"
+          },
+          "model": {
+            "type": "string"
+          },
+          "end_frame_path": {
+            "type": "string"
+          },
+          "duration_seconds": {
+            "type": "integer"
+          },
+          "aspect_ratio": {
+            "enum": [
+              "",
+              "1:1",
+              "16:9",
+              "9:16",
+              "4:3",
+              "3:4",
+              "3:2",
+              "2:3"
+            ],
+            "type": "string"
+          },
+          "resolution": {
+            "type": "string"
+          },
+          "generate_audio": {
+            "enum": [
+              "auto",
+              "on",
+              "off"
+            ],
+            "type": "string"
+          },
+          "output_dir": {
+            "type": "string"
+          },
+          "file_stem": {
             "type": "string"
           }
         },
@@ -565,12 +757,737 @@
       }
     },
     {
+      "name": "set_persona_scopes",
+      "description": "Set the tool permission scopes on a persona.\n\nArgs:\n    persona_id: Identifier of the persona to update.\n    scopes: List of scope names (e.g. ['files:read', 'web:search']) or a\n        single preset alias (e.g. ['all'], ['workspace'], ['read_only']).\n        Pass an empty list for chat-only (no tools).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "persona_id": {
+            "type": "string",
+            "description": "Identifier of the persona to update."
+          },
+          "scopes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "description": "List of scope names (e.g. ['files:read', 'web:search']) or a"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "persona_id",
+          "scopes"
+        ]
+      }
+    },
+    {
+      "name": "edit_space_route",
+      "description": "Edit an existing route's code by supplying only the changed sections.\n\nPreferred for edits to existing routes: sends only the changed sections with\n`// ... existing code ...` placeholders for unchanged regions, merged against\nthe current route code.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "description": "Route path of the existing route to edit, e.g. '/about' or '/api/hello'.",
+            "type": "string"
+          },
+          "code_edit": {
+            "description": "Partial edit — only the changed sections, with '// ... existing code ...' placeholders for unchanged parts. Merged against the current route code.",
+            "type": "string"
+          },
+          "edit_instructions": {
+            "description": "A sentence describing what the edit does, to help disambiguate. Leave empty to skip.",
+            "type": "string"
+          },
+          "public": {
+            "description": "'true' or 'false'. Optional visibility override for page routes. Leave empty to preserve current visibility. API routes are always public.",
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "path",
+          "code_edit"
+        ]
+      }
+    },
+    {
+      "name": "unpublish_site",
+      "description": "",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "site_path": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "site_path"
+        ]
+      }
+    },
+    {
+      "name": "save_webpage",
+      "description": "",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "url"
+        ]
+      }
+    },
+    {
+      "name": "delete_rule",
+      "description": "",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "rule_id": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "rule_id"
+        ]
+      }
+    },
+    {
+      "name": "x_search",
+      "description": "Search X (Twitter) for posts and users matching a query.\n\nThis tool utilizes a subagent with access to the X API.\n\nArgs:\n    query: Natural language prompt describing what to find on X.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Natural language prompt describing what to find on X."
+          },
+          "allowed_x_handles": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "excluded_x_handles": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "time_range": {
+            "type": "string"
+          },
+          "from_date": {
+            "type": "string"
+          },
+          "to_date": {
+            "type": "string"
+          },
+          "enable_image_understanding": {
+            "type": "boolean"
+          },
+          "enable_video_understanding": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "query"
+        ]
+      }
+    },
+    {
+      "name": "create_agent",
+      "description": "",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "rrule": {
+            "type": "string"
+          },
+          "instruction": {
+            "type": "string"
+          },
+          "delivery_method": {
+            "enum": [
+              "email",
+              "sms",
+              "telegram",
+              "slack",
+              "discord",
+              ""
+            ],
+            "type": "string"
+          },
+          "model": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "rrule",
+          "instruction"
+        ]
+      }
+    },
+    {
+      "name": "generate_speech",
+      "description": "",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string"
+          },
+          "file_stem": {
+            "type": "string"
+          },
+          "output_dir": {
+            "type": "string"
+          },
+          "voice": {
+            "enum": [
+              "ara",
+              "eve",
+              "leo",
+              "rex",
+              "sal"
+            ],
+            "type": "string"
+          },
+          "format": {
+            "enum": [
+              "mp3",
+              "wav"
+            ],
+            "type": "string"
+          },
+          "language": {
+            "type": "string"
+          },
+          "speed": {
+            "type": "number"
+          },
+          "instructions": {
+            "type": "string"
+          },
+          "model": {
+            "type": "string"
+          },
+          "voice_sample_path": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "text",
+          "file_stem"
+        ]
+      }
+    },
+    {
+      "name": "connect_telegram",
+      "description": "Generate a pairing code to connect Telegram to Zo.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "open_webpage",
+      "description": "",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "url"
+        ]
+      }
+    },
+    {
+      "name": "edit_rule",
+      "description": "",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "rule_id": {
+            "type": "string"
+          },
+          "instruction": {
+            "type": "string"
+          },
+          "condition": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "rule_id"
+        ]
+      }
+    },
+    {
+      "name": "list_app_tools",
+      "description": "",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "app_slug": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "app_slug"
+        ]
+      }
+    },
+    {
+      "name": "register_user_service",
+      "description": "",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "mode": {
+            "enum": [
+              "http",
+              "tcp",
+              "process"
+            ],
+            "type": "string"
+          },
+          "local_port": {
+            "type": "integer"
+          },
+          "entrypoint": {
+            "type": "string"
+          },
+          "workdir": {
+            "type": "string"
+          },
+          "env_vars": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "public": {
+            "enum": [
+              "true",
+              "false",
+              ""
+            ],
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "label",
+          "mode"
+        ]
+      }
+    },
+    {
+      "name": "bash",
+      "description": "",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "cmd": {
+            "type": "string"
+          },
+          "cwd": {
+            "type": "string"
+          },
+          "timeout": {
+            "type": "integer"
+          },
+          "description": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "cmd"
+        ]
+      }
+    },
+    {
+      "name": "list_user_services",
+      "description": "",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "write_file",
+      "description": "",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "target_file": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "target_file"
+        ]
+      }
+    },
+    {
+      "name": "delete_agent",
+      "description": "",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "automation_id": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "automation_id"
+        ]
+      }
+    },
+    {
+      "name": "restart_space_server",
+      "description": "Stop zo.space, clean-install dependencies, rebuild, and start it again.\n\nUse when the space is crash-looping, serving stale content, or has corrupted dependencies.\n\nArgs: (none)",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "get_space_settings",
+      "description": "Get space settings for the user's zo.space site.\n\nReturns the current settings (title, description, OG image, favicon, head HTML, robots.txt, etc).\n\nArgs: (none)",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "list_rules",
+      "description": "",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "image_search",
+      "description": "",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "query"
+        ]
+      }
+    },
+    {
+      "name": "edit_automation",
+      "description": "",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "automation_id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "instruction": {
+            "type": "string"
+          },
+          "rrule": {
+            "type": "string"
+          },
+          "delivery_method": {
+            "enum": [
+              "email",
+              "sms",
+              "telegram",
+              "slack",
+              "discord",
+              "none",
+              ""
+            ],
+            "type": "string"
+          },
+          "model": {
+            "type": "string"
+          },
+          "active": {
+            "enum": [
+              "true",
+              "false",
+              ""
+            ],
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "automation_id"
+        ]
+      }
+    },
+    {
+      "name": "generate_d2_diagram",
+      "description": "",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "file_stem": {
+            "type": "string"
+          },
+          "output_dir": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "code",
+          "file_stem"
+        ]
+      }
+    },
+    {
+      "name": "send_email_to_user",
+      "description": "Send an email to the user.\n\nArgs:\n    ctx: Runtime context.\n    subject: Email subject line. Must be non-empty.\n    markdown_body: Email body in Markdown. May be empty when attachments are provided.\n    attachments: Absolute file paths to attach (total size <= 10MB).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "subject": {
+            "type": "string",
+            "description": "Email subject line. Must be non-empty."
+          },
+          "markdown_body": {
+            "type": "string",
+            "description": "Email body in Markdown. May be empty when attachments are provided."
+          },
+          "attachments": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "description": "Absolute file paths to attach (total size <= 10MB)."
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "subject",
+          "markdown_body"
+        ]
+      }
+    },
+    {
+      "name": "write_space_route",
+      "description": "Create a new route or fully rewrite an existing one in the user's zo.space site.\n\nSee <capabilities> for architecture details, examples, and styling guidance.\n\nIMPORTANT: For edits to an existing route, use `edit_space_route` instead — it sends only the changed sections and avoids re-transmitting the whole file. Only use `write_space_route` when creating a new route or intentionally replacing all of the existing code.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "description": "Route path starting with '/'. Use '/' for custom home page. Any path works for either route type.",
+            "type": "string"
+          },
+          "route_type": {
+            "description": "Either 'api' or 'page'.",
+            "enum": [
+              "api",
+              "page"
+            ],
+            "type": "string"
+          },
+          "code": {
+            "description": "Full source code for the route. Required — must be valid TypeScript/TSX with a default export.",
+            "type": "string"
+          },
+          "public": {
+            "description": "'true' or 'false'. Whether the route is publicly accessible. API routes are always public (this param is ignored). For pages, leave empty to preserve current visibility on updates; defaults to false for new non-homepage pages and true for the homepage (/).",
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "path",
+          "route_type"
+        ]
+      }
+    },
+    {
+      "name": "connect_integration",
+      "description": "Surface an inline Connect button so the user can authorize an OAuth integration.\n\nUSE THIS whenever the user asks to do something with an OAuth integration\nthat is NOT yet connected for this workspace.  Five flavours, same\nuser-facing card:\n\n- Pipedream apps: ``gmail``, ``notion``, ``google_calendar``,\n  ``google_tasks``, ``google_drive``, ``linear``, ``dropbox``,\n  ``spotify``, ``google_sheets``, ``airtable_oauth``,\n  ``microsoft_onedrive``, ``microsoft_outlook``.\n- X (Twitter): pass ``app_slug=\"x\"``.\n- GitHub: pass ``app_slug=\"github\"``. Opens a ``gh auth login``\n  device-code dialog inline. Use this when the user wants GitHub\n  access (PRs, repos, issues) and the workspace's gh CLI isn't\n  authenticated yet — readiness is whether ``gh auth status`` passes.\n- Stripe Connect: pass ``app_slug=\"stripe\"``. Use this when the user\n  wants to accept payments / sell products with Stripe and Stripe\n  Connect isn't set up yet. The widget sends them to Settings →\n  Integrations → Payments to finish onboarding (it does not run an\n  inline OAuth flow). This is Zo's native Stripe integration — do NOT\n  try to connect Stripe through the generic Pipedream catalog.\n- OAuth MCP servers: pass ``app_slug=\"mcp:<slug>\"`` — ``mcp:logfire``,\n  ``mcp:sentry``, ``mcp:linear``, ``mcp:notion``, ``mcp:posthog``,\n  ``mcp:cloudflare``, ``mcp:ahrefs``.\n- Any other Pipedream catalog app: pass the ``app_slug`` from\n  ``search_app_catalog`` results. The full 1000+ app catalog is\n  connectable this way — not just the curated apps listed above.\n\nThe ``mcp:`` prefix disambiguates MCP servers from Pipedream apps —\nnotably ``linear`` (Pipedream) is distinct from ``mcp:linear`` (the\nLinear MCP server), and likewise ``notion`` vs ``mcp:notion``.\n\nPrefer this over telling the user to navigate to Settings — the inline\nwidget is one click vs. several, and looks better.\n\nThe widget renders inline in chat.  When the user clicks Connect and\ncompletes the OAuth round-trip, the connection is finalized automatically\nand the widget flips to \"Connected\" — you do NOT need to wait for a tool\nresult or take any further action.  Your turn ends after you surface the\nwidget; connecting does NOT wake you back up.  Only on the user's *next\nmessage* will your capabilities reflect the new connection state, at which\npoint you can proceed with the original request.\n\nAfter calling this tool, briefly acknowledge in chat that you've surfaced\na Connect button (one short sentence is enough — the widget speaks for\nitself), and ask the user to let you know once they've connected so you\ncan continue.  Do NOT say or imply that clicking Connect will make you\nautomatically pick up where you left off (\"once you connect, I'll\ngenerate…\") — that is misleading, because you stay idle until the user\nsends another message.  Do not also link to Settings; the widget already\nexposes that as an alternative.\n\nDo NOT call this tool if the app is already connected (check the\n<capabilities> block) — that just clutters the chat with a redundant\ncard.  Do NOT call multiple times for the same `app_slug` in one turn.\n\nNote: ``linear`` / ``notion`` (Pipedream) and ``mcp:linear`` /\n``mcp:notion`` (MCP servers) are distinct integrations.  Use whichever\nmatches what the user asked for — if they're in MCP code mode or asked\nfor \"the Linear MCP\", use ``mcp:linear``; otherwise the Pipedream\n``linear`` is usually what they want.\n\nDo NOT use this for chat channels (Telegram, Discord) or AI model\nproviders (OpenAI, Anthropic, ...): Zo supports those natively — link the\nuser to the relevant settings page instead (Settings -> Channels or\nSettings -> AI -> Providers).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "app_slug": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "app_slug"
+        ]
+      }
+    },
+    {
+      "name": "get_space_errors",
+      "description": "Get recent errors from the user's zo.space routes.\n\nErrors are logged when routes fail to load, build, or execute.\nAlso includes recent stderr output from the server.\nUse this to debug issues with space routes.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      }
+    },
+    {
       "name": "list_space_assets",
       "description": "List all uploaded assets in the user's zo.space site.\n\nReturns the URL paths of all assets that can be referenced in pages.",
       "inputSchema": {
         "type": "object",
         "properties": {},
         "additionalProperties": false
+      }
+    },
+    {
+      "name": "transcribe_audio",
+      "description": "",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "audio_file_path": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "audio_file_path"
+        ]
+      }
+    },
+    {
+      "name": "get_automation",
+      "description": "",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "automation_id": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "automation_id"
+        ]
+      }
+    },
+    {
+      "name": "delete_user_service",
+      "description": "",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "service_id": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "service_id"
+        ]
+      }
+    },
+    {
+      "name": "create_persona",
+      "description": "",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "prompt": {
+            "type": "string"
+          },
+          "image": {
+            "type": "string"
+          },
+          "image_hue": {
+            "type": "integer"
+          },
+          "model": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "prompt"
+        ]
+      }
+    },
+    {
+      "name": "proxy_local_service",
+      "description": "",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "local_port": {
+            "type": "integer"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "local_port"
+        ]
+      }
+    },
+    {
+      "name": "delete_persona",
+      "description": "",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "persona_id": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "persona_id"
+        ]
       }
     },
     {
@@ -649,112 +1566,378 @@
       }
     },
     {
-      "name": "edit_rule",
+      "name": "list_automations",
+      "description": "",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "list_directory",
       "description": "",
       "inputSchema": {
         "type": "object",
         "properties": {
-          "rule_id": {
+          "path": {
+            "type": "string"
+          },
+          "ignore": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "path"
+        ]
+      }
+    },
+    {
+      "name": "copy_file",
+      "description": "",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "source_path": {
+            "type": "string"
+          },
+          "dest_path": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "source_path",
+          "dest_path"
+        ]
+      }
+    },
+    {
+      "name": "create_automation",
+      "description": "",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "rrule": {
             "type": "string"
           },
           "instruction": {
             "type": "string"
           },
-          "condition": {
+          "delivery_method": {
+            "enum": [
+              "email",
+              "sms",
+              "telegram",
+              "slack",
+              "discord",
+              ""
+            ],
+            "type": "string"
+          },
+          "model": {
             "type": "string"
           }
         },
         "additionalProperties": false,
         "required": [
-          "rule_id"
+          "rrule",
+          "instruction"
         ]
       }
     },
     {
-      "name": "send_email_to_user",
-      "description": "Send an email to the user.\n\nArgs:\n    ctx: Runtime context.\n    subject: Email subject line. Must be non-empty.\n    markdown_body: Email body in Markdown. May be empty when attachments are provided.\n    attachments: Absolute file paths to attach (total size <= 10MB).",
+      "name": "list_agents",
+      "description": "",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "update_space_asset",
+      "description": "Copy a file from the workspace to the user's zo.space assets.\n\nAssets are served at their asset_path, e.g. asset_path='/images/logo.png' is accessible at '/images/logo.png'.\nReference in pages: <img src=\"/images/logo.png\" />\n\nArgs:\n    source_file: Path to the source file in the workspace, e.g. '/home/workspace/images/logo.png'.\n    asset_path: URL path where the asset will be served, starting with '/', e.g. '/images/logo.png'.",
       "inputSchema": {
         "type": "object",
         "properties": {
-          "subject": {
+          "source_file": {
             "type": "string",
-            "description": "Email subject line. Must be non-empty."
+            "description": "Path to the source file in the workspace, e.g. '/home/workspace/images/logo.png'."
           },
-          "markdown_body": {
+          "asset_path": {
             "type": "string",
-            "description": "Email body in Markdown. May be empty when attachments are provided."
-          },
-          "attachments": {
-            "items": {
-              "type": "string"
-            },
-            "type": "array",
-            "description": "Absolute file paths to attach (total size <= 10MB)."
+            "description": "URL path where the asset will be served, starting with '/', e.g. '/images/logo.png'."
           }
         },
         "additionalProperties": false,
         "required": [
-          "subject",
-          "markdown_body"
+          "source_file",
+          "asset_path"
         ]
       }
     },
     {
-      "name": "save_webpage",
+      "name": "get_space_route",
+      "description": "Get a space route by path, including its source code.\n\nUse this to inspect the code of an existing route before editing it.\n\nArgs:\n    path: Route path, e.g. '/api/hello' or '/about'.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Route path, e.g. '/api/hello' or '/about'."
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "path"
+        ]
+      }
+    },
+    {
+      "name": "web_research",
       "description": "",
       "inputSchema": {
         "type": "object",
         "properties": {
-          "url": {
+          "query": {
+            "type": "string"
+          },
+          "time_range": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          },
+          "include_domains": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "exclude_domains": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "include_text": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "query"
+        ]
+      }
+    },
+    {
+      "name": "delete_space_asset",
+      "description": "Delete a static asset from the user's zo.space site.\n\nArgs:\n    asset_path: URL path of the asset to delete, e.g. '/images/logo.png'.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "asset_path": {
+            "type": "string",
+            "description": "URL path of the asset to delete, e.g. '/images/logo.png'."
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "asset_path"
+        ]
+      }
+    },
+    {
+      "name": "delete_space_route",
+      "description": "Delete a route from the user's zo.space site.\n\nArgs:\n    path: Route path to delete, e.g. '/api/hello' or '/about'.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Route path to delete, e.g. '/api/hello' or '/about'."
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "path"
+        ]
+      }
+    },
+    {
+      "name": "edit_file",
+      "description": "",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "target_file": {
+            "type": "string"
+          },
+          "operations": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "target_file",
+          "operations"
+        ]
+      }
+    },
+    {
+      "name": "service_doctor",
+      "description": "",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "service": {
             "type": "string"
           }
         },
         "additionalProperties": false,
         "required": [
-          "url"
+          "service"
         ]
       }
     },
     {
-      "name": "maps_search",
-      "description": "Search Google Maps for locations.\n\nThis tool utilizes a subagent that uses the Google Maps API as a tool to search for locations following the provided query prompt.\nExample use cases:\n- Place-specific questions: \"Is there a cafe near the corner of 1st and Main that has outdoor seating?\"\n- Finding the best locations by reviews: \"Which family-friendly restaurants near here have the best playground reviews?\"\n- Itinerary planning: \"Plan a day in San Francisco for me. I want to see the Golden Gate Bridge, visit a museum, and have a nice dinner.\"\n\nArgs:\n    query: Natural language prompt describing what to find on Google Maps.",
+      "name": "edit_agent",
+      "description": "",
       "inputSchema": {
         "type": "object",
         "properties": {
-          "query": {
-            "type": "string",
-            "description": "Natural language prompt describing what to find on Google Maps."
-          },
-          "location": {
+          "automation_id": {
             "type": "string"
           },
-          "open_now": {
+          "title": {
+            "type": "string"
+          },
+          "instruction": {
+            "type": "string"
+          },
+          "rrule": {
+            "type": "string"
+          },
+          "delivery_method": {
+            "enum": [
+              "email",
+              "sms",
+              "telegram",
+              "slack",
+              "discord",
+              "none",
+              ""
+            ],
+            "type": "string"
+          },
+          "model": {
+            "type": "string"
+          },
+          "active": {
             "enum": [
               "true",
               "false",
               ""
             ],
             "type": "string"
-          },
-          "min_rating": {
-            "type": "number"
-          },
-          "included_type": {
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "automation_id"
+        ]
+      }
+    },
+    {
+      "name": "update_user_settings",
+      "description": "",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "field": {
+            "enum": [
+              "name",
+              "bio"
+            ],
             "type": "string"
           },
-          "price_level": {
-            "type": "string"
-          },
-          "language": {
-            "type": "string"
-          },
-          "region": {
+          "value": {
             "type": "string"
           }
         },
         "additionalProperties": false,
         "required": [
-          "query"
+          "field",
+          "value"
+        ]
+      }
+    },
+    {
+      "name": "edit_file_llm",
+      "description": "",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "target_file": {
+            "type": "string"
+          },
+          "code_edit": {
+            "type": "string"
+          },
+          "instructions": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "target_file",
+          "code_edit"
+        ]
+      }
+    },
+    {
+      "name": "read_file",
+      "description": "",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "target_file": {
+            "type": "string"
+          },
+          "start_line": {
+            "type": "integer"
+          },
+          "end_line": {
+            "type": "integer"
+          },
+          "read_entire_file": {
+            "type": "boolean"
+          },
+          "pdf_epub_start_page_1_indexed": {
+            "type": "integer"
+          },
+          "pdf_epub_end_page_1_indexed_inclusive": {
+            "type": "integer"
+          },
+          "pdf_epub_include_images": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "target_file"
         ]
       }
     },
@@ -849,7 +2032,16 @@
       }
     },
     {
-      "name": "delete_agent",
+      "name": "list_space_routes",
+      "description": "List all routes in the user's zo.space site.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "delete_automation",
       "description": "",
       "inputSchema": {
         "type": "object",
@@ -865,295 +2057,20 @@
       }
     },
     {
-      "name": "list_agents",
-      "description": "",
-      "inputSchema": {
-        "type": "object",
-        "properties": {},
-        "additionalProperties": false
-      }
-    },
-    {
-      "name": "update_space_settings",
-      "description": "Update space settings — either globally or for a single page route.\n\nBy default (`path=\"\"`) the call updates space-wide settings stored in\n`site-settings.json`. Pass a route path (e.g. `path=\"/\"` for the home page\nor `path=\"/about\"`) to apply the change as a per-page override that\ninherits from the space defaults when unset.\n\nOnly provided arguments are changed; omitted arguments keep their current\nvalues. Pass \"default\" for any string field to clear it (revert to the\nspace default when path is set, revert to the built-in default when path\nis empty). Triggers a zo-space server restart so changes take effect\nimmediately.\n\nPer-page overrides only support `site_title`, `site_description`,\n`og_image_url`, and `noindex` — they map onto `page_title`,\n`page_description`, `page_og_image_url`, and `page_noindex` (\"block\" /\n\"allow\"). The other fields apply space-globally only and will be\nrejected if combined with a non-empty `path`.\n\nArgs:\n    path: Empty string for space-global settings (default), or a route\n        path like \"/\" (home) or \"/about\" to update that page's metadata\n        overrides. Note: \"\" is the global sentinel and is distinct from\n        \"/\" which is the home route.\n    site_title: Title override. Pass \"default\" to reset/clear.\n    site_description: Meta description. Pass \"default\" to reset/clear.\n    og_image_url: Asset path for OG image (e.g. \"/assets/og.png\"). Must\n        be a space asset, not an external URL. Pass \"default\" to revert.\n    favicon_url: Asset path for favicon. Space-global only.\n    custom_head_html: HTML injected into <head>. Space-global only.\n    robots_txt: Custom robots.txt content. Space-global only.\n    noindex: \"true\" adds noindex/nofollow; \"false\" removes it; \"default\"\n        clears any per-page override (and inherits from the space).\n    custom_404_route: Route path for custom 404 page. Space-global only.\n    lang: HTML lang attribute value. Space-global only.\n    atproto_did: AT Protocol DID for domain verification. Space-global only.",
+      "name": "redo_space_route",
+      "description": "Redo a previously undone change to a space route, restoring the next version.\n\nThis can redo code changes and also redo deletions.\nHistory persists across host reboots.\n\nArgs:\n    path: Route path to redo, e.g. '/about' or '/api/hello'.",
       "inputSchema": {
         "type": "object",
         "properties": {
           "path": {
             "type": "string",
-            "description": "Empty string for space-global settings (default), or a route"
-          },
-          "site_title": {
-            "type": "string",
-            "description": "Title override. Pass \"default\" to reset/clear."
-          },
-          "site_description": {
-            "type": "string",
-            "description": "Meta description. Pass \"default\" to reset/clear."
-          },
-          "og_image_url": {
-            "type": "string",
-            "description": "Asset path for OG image (e.g. \"/assets/og.png\"). Must"
-          },
-          "favicon_url": {
-            "type": "string",
-            "description": "Asset path for favicon. Space-global only."
-          },
-          "custom_head_html": {
-            "type": "string",
-            "description": "HTML injected into <head>. Space-global only."
-          },
-          "robots_txt": {
-            "type": "string",
-            "description": "Custom robots.txt content. Space-global only."
-          },
-          "noindex": {
-            "enum": [
-              "true",
-              "false",
-              "default",
-              ""
-            ],
-            "type": "string",
-            "description": "\"true\" adds noindex/nofollow; \"false\" removes it; \"default\""
-          },
-          "custom_404_route": {
-            "type": "string",
-            "description": "Route path for custom 404 page. Space-global only."
-          },
-          "lang": {
-            "type": "string",
-            "description": "HTML lang attribute value. Space-global only."
-          },
-          "atproto_did": {
-            "type": "string",
-            "description": "AT Protocol DID for domain verification. Space-global only."
-          }
-        },
-        "additionalProperties": false
-      }
-    },
-    {
-      "name": "send_sms_to_user",
-      "description": "Send an SMS text message to the user or a contact.\n\nArgs:\n    ctx: Runtime context.\n    message: The text content. May be empty when media_files is provided.\n    media_files: Absolute file paths to send as MMS attachments.\n    contact_name: Name of a registered contact. If omitted, sends to the user.",
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "message": {
-            "type": "string",
-            "description": "The text content. May be empty when media_files is provided."
-          },
-          "media_files": {
-            "items": {
-              "type": "string"
-            },
-            "type": "array",
-            "description": "Absolute file paths to send as MMS attachments."
-          },
-          "contact_name": {
-            "type": "string",
-            "description": "Name of a registered contact. If omitted, sends to the user."
+            "description": "Route path to redo, e.g. '/about' or '/api/hello'."
           }
         },
         "additionalProperties": false,
         "required": [
-          "message"
+          "path"
         ]
-      }
-    },
-    {
-      "name": "list_automations",
-      "description": "",
-      "inputSchema": {
-        "type": "object",
-        "properties": {},
-        "additionalProperties": false
-      }
-    },
-    {
-      "name": "get_automation",
-      "description": "",
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "automation_id": {
-            "type": "string"
-          }
-        },
-        "additionalProperties": false,
-        "required": [
-          "automation_id"
-        ]
-      }
-    },
-    {
-      "name": "read_file",
-      "description": "",
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "target_file": {
-            "type": "string"
-          },
-          "start_line": {
-            "type": "integer"
-          },
-          "end_line": {
-            "type": "integer"
-          },
-          "read_entire_file": {
-            "type": "boolean"
-          },
-          "pdf_epub_start_page_1_indexed": {
-            "type": "integer"
-          },
-          "pdf_epub_end_page_1_indexed_inclusive": {
-            "type": "integer"
-          },
-          "pdf_epub_include_images": {
-            "type": "boolean"
-          }
-        },
-        "additionalProperties": false,
-        "required": [
-          "target_file"
-        ]
-      }
-    },
-    {
-      "name": "generate_speech",
-      "description": "",
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "text": {
-            "type": "string"
-          },
-          "file_stem": {
-            "type": "string"
-          },
-          "output_dir": {
-            "type": "string"
-          },
-          "voice": {
-            "enum": [
-              "ara",
-              "eve",
-              "leo",
-              "rex",
-              "sal"
-            ],
-            "type": "string"
-          },
-          "format": {
-            "enum": [
-              "mp3",
-              "wav"
-            ],
-            "type": "string"
-          },
-          "language": {
-            "type": "string"
-          },
-          "speed": {
-            "type": "number"
-          },
-          "instructions": {
-            "type": "string"
-          },
-          "model": {
-            "type": "string"
-          },
-          "voice_sample_path": {
-            "type": "string"
-          }
-        },
-        "additionalProperties": false,
-        "required": [
-          "text",
-          "file_stem"
-        ]
-      }
-    },
-    {
-      "name": "delete_persona",
-      "description": "",
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "persona_id": {
-            "type": "string"
-          }
-        },
-        "additionalProperties": false,
-        "required": [
-          "persona_id"
-        ]
-      }
-    },
-    {
-      "name": "update_user_settings",
-      "description": "",
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "field": {
-            "enum": [
-              "name",
-              "bio"
-            ],
-            "type": "string"
-          },
-          "value": {
-            "type": "string"
-          }
-        },
-        "additionalProperties": false,
-        "required": [
-          "field",
-          "value"
-        ]
-      }
-    },
-    {
-      "name": "delete_user_service",
-      "description": "",
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "service_id": {
-            "type": "string"
-          }
-        },
-        "additionalProperties": false,
-        "required": [
-          "service_id"
-        ]
-      }
-    },
-    {
-      "name": "transcribe_audio",
-      "description": "",
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "audio_file_path": {
-            "type": "string"
-          }
-        },
-        "additionalProperties": false,
-        "required": [
-          "audio_file_path"
-        ]
-      }
-    },
-    {
-      "name": "list_user_services",
-      "description": "",
-      "inputSchema": {
-        "type": "object",
-        "properties": {},
-        "additionalProperties": false
       }
     },
     {
@@ -1198,855 +2115,7 @@
       }
     },
     {
-      "name": "generate_d2_diagram",
-      "description": "",
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "code": {
-            "type": "string"
-          },
-          "file_stem": {
-            "type": "string"
-          },
-          "output_dir": {
-            "type": "string"
-          }
-        },
-        "additionalProperties": false,
-        "required": [
-          "code",
-          "file_stem"
-        ]
-      }
-    },
-    {
-      "name": "get_space_route_history",
-      "description": "View the full version history of a space route.\n\nShows all versions (past and future relative to current position)\nwith action type and code preview. Use undo/redo to navigate.\n\nArgs:\n    path: Route path, e.g. '/about' or '/api/hello'.",
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "path": {
-            "type": "string",
-            "description": "Route path, e.g. '/about' or '/api/hello'."
-          }
-        },
-        "additionalProperties": false,
-        "required": [
-          "path"
-        ]
-      }
-    },
-    {
-      "name": "publish_site",
-      "description": "",
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "site_path": {
-            "type": "string"
-          },
-          "public": {
-            "enum": [
-              "true",
-              "false",
-              ""
-            ],
-            "type": "string"
-          }
-        },
-        "additionalProperties": false,
-        "required": [
-          "site_path"
-        ]
-      }
-    },
-    {
-      "name": "set_active_persona",
-      "description": "",
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "persona_id": {
-            "type": "string"
-          }
-        },
-        "additionalProperties": false,
-        "required": [
-          "persona_id"
-        ]
-      }
-    },
-    {
-      "name": "proxy_local_service",
-      "description": "",
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "local_port": {
-            "type": "integer"
-          }
-        },
-        "additionalProperties": false,
-        "required": [
-          "local_port"
-        ]
-      }
-    },
-    {
-      "name": "delete_automation",
-      "description": "",
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "automation_id": {
-            "type": "string"
-          }
-        },
-        "additionalProperties": false,
-        "required": [
-          "automation_id"
-        ]
-      }
-    },
-    {
-      "name": "generate_video",
-      "description": "",
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "instruction": {
-            "type": "string"
-          },
-          "filepath": {
-            "type": "string"
-          },
-          "file_suffix": {
-            "type": "string"
-          },
-          "orientation": {
-            "enum": [
-              "landscape",
-              "portrait"
-            ],
-            "type": "string"
-          },
-          "model": {
-            "type": "string"
-          },
-          "end_frame_path": {
-            "type": "string"
-          },
-          "duration_seconds": {
-            "type": "integer"
-          },
-          "aspect_ratio": {
-            "enum": [
-              "",
-              "1:1",
-              "16:9",
-              "9:16",
-              "4:3",
-              "3:4",
-              "3:2",
-              "2:3"
-            ],
-            "type": "string"
-          },
-          "resolution": {
-            "type": "string"
-          },
-          "generate_audio": {
-            "enum": [
-              "auto",
-              "on",
-              "off"
-            ],
-            "type": "string"
-          },
-          "output_dir": {
-            "type": "string"
-          },
-          "file_stem": {
-            "type": "string"
-          }
-        },
-        "additionalProperties": false,
-        "required": [
-          "instruction"
-        ]
-      }
-    },
-    {
-      "name": "create_automation",
-      "description": "",
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "rrule": {
-            "type": "string"
-          },
-          "instruction": {
-            "type": "string"
-          },
-          "delivery_method": {
-            "enum": [
-              "email",
-              "sms",
-              "telegram",
-              "slack",
-              "discord",
-              ""
-            ],
-            "type": "string"
-          },
-          "model": {
-            "type": "string"
-          }
-        },
-        "additionalProperties": false,
-        "required": [
-          "rrule",
-          "instruction"
-        ]
-      }
-    },
-    {
-      "name": "connect_telegram",
-      "description": "Generate a pairing code to connect Telegram to Zo.",
-      "inputSchema": {
-        "type": "object",
-        "properties": {},
-        "additionalProperties": false
-      }
-    },
-    {
-      "name": "unpublish_site",
-      "description": "",
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "site_path": {
-            "type": "string"
-          }
-        },
-        "additionalProperties": false,
-        "required": [
-          "site_path"
-        ]
-      }
-    },
-    {
-      "name": "list_personas",
-      "description": "",
-      "inputSchema": {
-        "type": "object",
-        "properties": {},
-        "additionalProperties": false
-      }
-    },
-    {
-      "name": "web_search",
-      "description": "",
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "query": {
-            "type": "string"
-          },
-          "time_range": {
-            "type": "string"
-          },
-          "include_domains": {
-            "items": {
-              "type": "string"
-            },
-            "type": "array"
-          },
-          "topic": {
-            "type": "string"
-          }
-        },
-        "additionalProperties": false,
-        "required": [
-          "query"
-        ]
-      }
-    },
-    {
-      "name": "get_space_route",
-      "description": "Get a space route by path, including its source code.\n\nUse this to inspect the code of an existing route before editing it.\n\nArgs:\n    path: Route path, e.g. '/api/hello' or '/about'.",
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "path": {
-            "type": "string",
-            "description": "Route path, e.g. '/api/hello' or '/about'."
-          }
-        },
-        "additionalProperties": false,
-        "required": [
-          "path"
-        ]
-      }
-    },
-    {
-      "name": "find_similar_links",
-      "description": "",
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "url": {
-            "type": "string"
-          },
-          "include_domains": {
-            "items": {
-              "type": "string"
-            },
-            "type": "array"
-          },
-          "exclude_domains": {
-            "items": {
-              "type": "string"
-            },
-            "type": "array"
-          },
-          "exclude_source_domain": {
-            "type": "boolean"
-          }
-        },
-        "additionalProperties": false,
-        "required": [
-          "url"
-        ]
-      }
-    },
-    {
-      "name": "x_search",
-      "description": "Search X (Twitter) for posts and users matching a query.\n\nThis tool utilizes a subagent with access to the X API.\n\nArgs:\n    query: Natural language prompt describing what to find on X.",
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "query": {
-            "type": "string",
-            "description": "Natural language prompt describing what to find on X."
-          },
-          "allowed_x_handles": {
-            "items": {
-              "type": "string"
-            },
-            "type": "array"
-          },
-          "excluded_x_handles": {
-            "items": {
-              "type": "string"
-            },
-            "type": "array"
-          },
-          "time_range": {
-            "type": "string"
-          },
-          "from_date": {
-            "type": "string"
-          },
-          "to_date": {
-            "type": "string"
-          },
-          "enable_image_understanding": {
-            "type": "boolean"
-          },
-          "enable_video_understanding": {
-            "type": "boolean"
-          }
-        },
-        "additionalProperties": false,
-        "required": [
-          "query"
-        ]
-      }
-    },
-    {
-      "name": "delete_rule",
-      "description": "",
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "rule_id": {
-            "type": "string"
-          }
-        },
-        "additionalProperties": false,
-        "required": [
-          "rule_id"
-        ]
-      }
-    },
-    {
-      "name": "edit_space_route",
-      "description": "Edit an existing route's code by supplying only the changed sections.\n\nPreferred for edits to existing routes: sends only the changed sections with\n`// ... existing code ...` placeholders for unchanged regions, merged against\nthe current route code.",
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "path": {
-            "description": "Route path of the existing route to edit, e.g. '/about' or '/api/hello'.",
-            "type": "string"
-          },
-          "code_edit": {
-            "description": "Partial edit — only the changed sections, with '// ... existing code ...' placeholders for unchanged parts. Merged against the current route code.",
-            "type": "string"
-          },
-          "edit_instructions": {
-            "description": "A sentence describing what the edit does, to help disambiguate. Leave empty to skip.",
-            "type": "string"
-          },
-          "public": {
-            "description": "'true' or 'false'. Optional visibility override for page routes. Leave empty to preserve current visibility. API routes are always public.",
-            "type": "string"
-          }
-        },
-        "additionalProperties": false,
-        "required": [
-          "path",
-          "code_edit"
-        ]
-      }
-    },
-    {
-      "name": "image_search",
-      "description": "",
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "query": {
-            "type": "string"
-          }
-        },
-        "additionalProperties": false,
-        "required": [
-          "query"
-        ]
-      }
-    },
-    {
-      "name": "create_agent",
-      "description": "",
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "rrule": {
-            "type": "string"
-          },
-          "instruction": {
-            "type": "string"
-          },
-          "delivery_method": {
-            "enum": [
-              "email",
-              "sms",
-              "telegram",
-              "slack",
-              "discord",
-              ""
-            ],
-            "type": "string"
-          },
-          "model": {
-            "type": "string"
-          }
-        },
-        "additionalProperties": false,
-        "required": [
-          "rrule",
-          "instruction"
-        ]
-      }
-    },
-    {
-      "name": "register_user_service",
-      "description": "",
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "label": {
-            "type": "string"
-          },
-          "mode": {
-            "enum": [
-              "http",
-              "tcp",
-              "process"
-            ],
-            "type": "string"
-          },
-          "local_port": {
-            "type": "integer"
-          },
-          "entrypoint": {
-            "type": "string"
-          },
-          "workdir": {
-            "type": "string"
-          },
-          "env_vars": {
-            "additionalProperties": true,
-            "type": "object"
-          },
-          "public": {
-            "enum": [
-              "true",
-              "false",
-              ""
-            ],
-            "type": "string"
-          }
-        },
-        "additionalProperties": false,
-        "required": [
-          "label",
-          "mode"
-        ]
-      }
-    },
-    {
-      "name": "open_webpage",
-      "description": "",
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "url": {
-            "type": "string"
-          }
-        },
-        "additionalProperties": false,
-        "required": [
-          "url"
-        ]
-      }
-    },
-    {
-      "name": "tool_docs",
-      "description": "",
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "tool_name": {
-            "type": "string"
-          }
-        },
-        "additionalProperties": false,
-        "required": [
-          "tool_name"
-        ]
-      }
-    },
-    {
-      "name": "list_app_tools",
-      "description": "",
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "app_slug": {
-            "type": "string"
-          }
-        },
-        "additionalProperties": false,
-        "required": [
-          "app_slug"
-        ]
-      }
-    },
-    {
-      "name": "edit_file",
-      "description": "",
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "target_file": {
-            "type": "string"
-          },
-          "operations": {
-            "items": {
-              "additionalProperties": true,
-              "type": "object"
-            },
-            "type": "array"
-          }
-        },
-        "additionalProperties": false,
-        "required": [
-          "target_file",
-          "operations"
-        ]
-      }
-    },
-    {
-      "name": "transcribe_video",
-      "description": "",
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "video_file_path": {
-            "type": "string"
-          }
-        },
-        "additionalProperties": false,
-        "required": [
-          "video_file_path"
-        ]
-      }
-    },
-    {
-      "name": "get_space_settings",
-      "description": "Get space settings for the user's zo.space site.\n\nReturns the current settings (title, description, OG image, favicon, head HTML, robots.txt, etc).\n\nArgs: (none)",
-      "inputSchema": {
-        "type": "object",
-        "properties": {},
-        "additionalProperties": false
-      }
-    },
-    {
-      "name": "web_research",
-      "description": "",
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "query": {
-            "type": "string"
-          },
-          "time_range": {
-            "type": "string"
-          },
-          "category": {
-            "type": "string"
-          },
-          "include_domains": {
-            "items": {
-              "type": "string"
-            },
-            "type": "array"
-          },
-          "exclude_domains": {
-            "items": {
-              "type": "string"
-            },
-            "type": "array"
-          },
-          "include_text": {
-            "items": {
-              "type": "string"
-            },
-            "type": "array"
-          }
-        },
-        "additionalProperties": false,
-        "required": [
-          "query"
-        ]
-      }
-    },
-    {
-      "name": "update_user_service",
-      "description": "",
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "service_id": {
-            "type": "string"
-          },
-          "label": {
-            "type": "string"
-          },
-          "mode": {
-            "enum": [
-              "http",
-              "tcp",
-              "process",
-              ""
-            ],
-            "type": "string"
-          },
-          "local_port": {
-            "type": "integer"
-          },
-          "entrypoint": {
-            "type": "string"
-          },
-          "workdir": {
-            "type": "string"
-          },
-          "env_vars": {
-            "additionalProperties": true,
-            "type": "object"
-          },
-          "public": {
-            "enum": [
-              "true",
-              "false",
-              ""
-            ],
-            "type": "string"
-          },
-          "enabled": {
-            "enum": [
-              "true",
-              "false",
-              ""
-            ],
-            "type": "string"
-          }
-        },
-        "additionalProperties": false,
-        "required": [
-          "service_id"
-        ]
-      }
-    },
-    {
-      "name": "write_file",
-      "description": "",
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "target_file": {
-            "type": "string"
-          },
-          "content": {
-            "type": "string"
-          }
-        },
-        "additionalProperties": false,
-        "required": [
-          "target_file"
-        ]
-      }
-    },
-    {
-      "name": "search_app_catalog",
-      "description": "Search Pipedream's full catalog of 1000+ app integrations by keyword.\n\nUse this to find an integration that does NOT have a dedicated `use_app_*`\ntool. Returns matching apps with their `app_slug`, name, and description,\nplus whether the workspace has already connected each one.\n\nCatalog apps are beyond Zo's curated, verified set — they work, but Zo has\nnot tested them, so reliability varies. When a dedicated `use_app_*` tool\nexists for what the user wants, prefer that.\n\nOnce you've found an app:\n  1. `connect_integration(app_slug)` — if it isn't connected yet.\n  2. `list_app_tools(app_slug)` — see its actions and parameters.\n  3. `use_integration(app_slug, tool_name, configured_props={...})`.",
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "query": {
-            "type": "string"
-          }
-        },
-        "additionalProperties": false,
-        "required": [
-          "query"
-        ]
-      }
-    },
-    {
-      "name": "delete_space_asset",
-      "description": "Delete a static asset from the user's zo.space site.\n\nArgs:\n    asset_path: URL path of the asset to delete, e.g. '/images/logo.png'.",
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "asset_path": {
-            "type": "string",
-            "description": "URL path of the asset to delete, e.g. '/images/logo.png'."
-          }
-        },
-        "additionalProperties": false,
-        "required": [
-          "asset_path"
-        ]
-      }
-    },
-    {
-      "name": "bash",
-      "description": "",
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "cmd": {
-            "type": "string"
-          },
-          "cwd": {
-            "type": "string"
-          },
-          "timeout": {
-            "type": "integer"
-          },
-          "description": {
-            "type": "string"
-          }
-        },
-        "additionalProperties": false,
-        "required": [
-          "cmd"
-        ]
-      }
-    },
-    {
-      "name": "delete_space_route",
-      "description": "Delete a route from the user's zo.space site.\n\nArgs:\n    path: Route path to delete, e.g. '/api/hello' or '/about'.",
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "path": {
-            "type": "string",
-            "description": "Route path to delete, e.g. '/api/hello' or '/about'."
-          }
-        },
-        "additionalProperties": false,
-        "required": [
-          "path"
-        ]
-      }
-    },
-    {
-      "name": "service_doctor",
-      "description": "",
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "service": {
-            "type": "string"
-          }
-        },
-        "additionalProperties": false,
-        "required": [
-          "service"
-        ]
-      }
-    },
-    {
-      "name": "write_space_route",
-      "description": "Create a new route or fully rewrite an existing one in the user's zo.space site.\n\nSee <capabilities> for architecture details, examples, and styling guidance.\n\nIMPORTANT: For edits to an existing route, use `edit_space_route` instead — it sends only the changed sections and avoids re-transmitting the whole file. Only use `write_space_route` when creating a new route or intentionally replacing all of the existing code.",
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "path": {
-            "description": "Route path starting with '/'. Use '/' for custom home page. Any path works for either route type.",
-            "type": "string"
-          },
-          "route_type": {
-            "description": "Either 'api' or 'page'.",
-            "enum": [
-              "api",
-              "page"
-            ],
-            "type": "string"
-          },
-          "code": {
-            "description": "Full source code for the route. Required — must be valid TypeScript/TSX with a default export.",
-            "type": "string"
-          },
-          "public": {
-            "description": "'true' or 'false'. Whether the route is publicly accessible. API routes are always public (this param is ignored). For pages, leave empty to preserve current visibility on updates; defaults to false for new non-homepage pages and true for the homepage (/).",
-            "type": "string"
-          }
-        },
-        "additionalProperties": false,
-        "required": [
-          "path",
-          "route_type"
-        ]
-      }
-    },
-    {
-      "name": "list_rules",
+      "name": "list_available_scopes",
       "description": "",
       "inputSchema": {
         "type": "object",
@@ -2082,136 +2151,67 @@
       }
     },
     {
-      "name": "edit_agent",
+      "name": "view_webpage",
+      "description": "",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "create_website",
       "description": "",
       "inputSchema": {
         "type": "object",
         "properties": {
-          "automation_id": {
+          "name": {
             "type": "string"
           },
-          "title": {
-            "type": "string"
-          },
-          "instruction": {
-            "type": "string"
-          },
-          "rrule": {
-            "type": "string"
-          },
-          "delivery_method": {
+          "variant": {
             "enum": [
-              "email",
-              "sms",
-              "telegram",
-              "slack",
-              "discord",
-              "none",
-              ""
+              "blank",
+              "blog",
+              "event",
+              "slides",
+              "data",
+              "marketing",
+              "portfolio",
+              "kb",
+              "waitlist",
+              "storefront"
             ],
             "type": "string"
           },
-          "model": {
-            "type": "string"
+          "parent_path_parts": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
           },
-          "active": {
-            "enum": [
-              "true",
-              "false",
-              ""
-            ],
-            "type": "string"
+          "force": {
+            "type": "boolean"
           }
         },
         "additionalProperties": false,
         "required": [
-          "automation_id"
+          "name"
         ]
       }
     },
     {
-      "name": "connect_integration",
-      "description": "Surface an inline Connect button so the user can authorize an OAuth integration.\n\nUSE THIS whenever the user asks to do something with an OAuth integration\nthat is NOT yet connected for this workspace.  Five flavours, same\nuser-facing card:\n\n- Pipedream apps: ``gmail``, ``notion``, ``google_calendar``,\n  ``google_tasks``, ``google_drive``, ``linear``, ``dropbox``,\n  ``spotify``, ``google_sheets``, ``airtable_oauth``,\n  ``microsoft_onedrive``, ``microsoft_outlook``.\n- X (Twitter): pass ``app_slug=\"x\"``.\n- GitHub: pass ``app_slug=\"github\"``. Opens a ``gh auth login``\n  device-code dialog inline. Use this when the user wants GitHub\n  access (PRs, repos, issues) and the workspace's gh CLI isn't\n  authenticated yet — readiness is whether ``gh auth status`` passes.\n- Stripe Connect: pass ``app_slug=\"stripe\"``. Use this when the user\n  wants to accept payments / sell products with Stripe and Stripe\n  Connect isn't set up yet. The widget sends them to Settings →\n  Integrations → Payments to finish onboarding (it does not run an\n  inline OAuth flow). This is Zo's native Stripe integration — do NOT\n  try to connect Stripe through the generic Pipedream catalog.\n- OAuth MCP servers: pass ``app_slug=\"mcp:<slug>\"`` — ``mcp:logfire``,\n  ``mcp:sentry``, ``mcp:linear``, ``mcp:notion``, ``mcp:posthog``,\n  ``mcp:cloudflare``, ``mcp:ahrefs``.\n- Any other Pipedream catalog app: pass the ``app_slug`` from\n  ``search_app_catalog`` results. The full 1000+ app catalog is\n  connectable this way — not just the curated apps listed above.\n\nThe ``mcp:`` prefix disambiguates MCP servers from Pipedream apps —\nnotably ``linear`` (Pipedream) is distinct from ``mcp:linear`` (the\nLinear MCP server), and likewise ``notion`` vs ``mcp:notion``.\n\nPrefer this over telling the user to navigate to Settings — the inline\nwidget is one click vs. several, and looks better.\n\nThe widget renders inline in chat.  When the user clicks Connect and\ncompletes the OAuth round-trip, the connection is finalized automatically\nand the widget flips to \"Connected\" — you do NOT need to wait for a tool\nresult or take any further action.  Your turn ends after you surface the\nwidget; connecting does NOT wake you back up.  Only on the user's *next\nmessage* will your capabilities reflect the new connection state, at which\npoint you can proceed with the original request.\n\nAfter calling this tool, briefly acknowledge in chat that you've surfaced\na Connect button (one short sentence is enough — the widget speaks for\nitself), and ask the user to let you know once they've connected so you\ncan continue.  Do NOT say or imply that clicking Connect will make you\nautomatically pick up where you left off (\"once you connect, I'll\ngenerate…\") — that is misleading, because you stay idle until the user\nsends another message.  Do not also link to Settings; the widget already\nexposes that as an alternative.\n\nDo NOT call this tool if the app is already connected (check the\n<capabilities> block) — that just clutters the chat with a redundant\ncard.  Do NOT call multiple times for the same `app_slug` in one turn.\n\nNote: ``linear`` / ``notion`` (Pipedream) and ``mcp:linear`` /\n``mcp:notion`` (MCP servers) are distinct integrations.  Use whichever\nmatches what the user asked for — if they're in MCP code mode or asked\nfor \"the Linear MCP\", use ``mcp:linear``; otherwise the Pipedream\n``linear`` is usually what they want.\n\nDo NOT use this for chat channels (Telegram, Discord) or AI model\nproviders (OpenAI, Anthropic, ...): Zo supports those natively — link the\nuser to the relevant settings page instead (Settings -> Channels or\nSettings -> AI -> Providers).",
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "app_slug": {
-            "type": "string"
-          }
-        },
-        "additionalProperties": false,
-        "required": [
-          "app_slug"
-        ]
-      }
-    },
-    {
-      "name": "edit_automation",
+      "name": "set_active_persona",
       "description": "",
       "inputSchema": {
         "type": "object",
         "properties": {
-          "automation_id": {
-            "type": "string"
-          },
-          "title": {
-            "type": "string"
-          },
-          "instruction": {
-            "type": "string"
-          },
-          "rrule": {
-            "type": "string"
-          },
-          "delivery_method": {
-            "enum": [
-              "email",
-              "sms",
-              "telegram",
-              "slack",
-              "discord",
-              "none",
-              ""
-            ],
-            "type": "string"
-          },
-          "model": {
-            "type": "string"
-          },
-          "active": {
-            "enum": [
-              "true",
-              "false",
-              ""
-            ],
+          "persona_id": {
             "type": "string"
           }
         },
         "additionalProperties": false,
         "required": [
-          "automation_id"
-        ]
-      }
-    },
-    {
-      "name": "update_space_asset",
-      "description": "Copy a file from the workspace to the user's zo.space assets.\n\nAssets are served at their asset_path, e.g. asset_path='/images/logo.png' is accessible at '/images/logo.png'.\nReference in pages: <img src=\"/images/logo.png\" />\n\nArgs:\n    source_file: Path to the source file in the workspace, e.g. '/home/workspace/images/logo.png'.\n    asset_path: URL path where the asset will be served, starting with '/', e.g. '/images/logo.png'.",
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "source_file": {
-            "type": "string",
-            "description": "Path to the source file in the workspace, e.g. '/home/workspace/images/logo.png'."
-          },
-          "asset_path": {
-            "type": "string",
-            "description": "URL path where the asset will be served, starting with '/', e.g. '/images/logo.png'."
-          }
-        },
-        "additionalProperties": false,
-        "required": [
-          "source_file",
-          "asset_path"
+          "persona_id"
         ]
       }
     }
